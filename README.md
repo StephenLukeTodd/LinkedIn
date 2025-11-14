@@ -1,6 +1,7 @@
 # Infrastructure & Automation Scripts
 
-This repository is a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. 
+
+This repository is a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. AI was used for the sanitizing of these scripts to make it safe for public consumption.
 
 Key skills demonstrated:
 
