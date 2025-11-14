@@ -15,7 +15,3 @@ Usage & safety:
 - All scripts either prompt for input or require you to pass credentials interactively. They deliberately avoid hardcoding API tokens in the repo.
 - `cloudflare_tunnel_ingress_tls_disable.sh` and rollback create local `.bak` files before making changes — good to point out in interviews when discussing safe change management.
 
-Suggested talking points:
-
-- API automation best practices (minimal privileges, backups, explicit user prompts).
-- Error handling and validations before applying changes to DNS or tunnels.
