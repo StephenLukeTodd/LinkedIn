@@ -1,6 +1,3 @@
-# DEPRECATED: moved to `powershell/SortPhotos.ps1` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 # Specify the source folder containing photos
 # Use environment variable to avoid embedding a username
 $sourceFolder = Join-Path -Path $env:USERPROFILE -ChildPath 'OneDrive\Pictures\Unsorted'

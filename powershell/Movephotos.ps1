@@ -1,6 +1,3 @@
-﻿# DEPRECATED: moved to `powershell/Movephotos.ps1` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 # Specify the source and destination folders
 # Use the current user's profile rather than embedding a username
 $sourceFolder = Join-Path -Path $env:USERPROFILE -ChildPath 'OneDrive\Pictures\Screenshots'

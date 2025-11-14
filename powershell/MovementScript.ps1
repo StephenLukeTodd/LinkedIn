@@ -1,6 +1,3 @@
-﻿# DEPRECATED: moved to `powershell/MovementScript.ps1` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 # Use placeholders for local drives/paths to avoid exposing machine-specific layout
 $source = "<SRC_GAMES_DIR>"            # set locally before running
 $destination = "<DEST_GAMES_DIR>"      # set locally before running

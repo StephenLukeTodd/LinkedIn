@@ -1,6 +1,3 @@
-# DEPRECATED: moved to `scripts/MoveAnime.sh` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 #!/bin/bash
 
 # Ensure the script is run with the CSV file as an argument

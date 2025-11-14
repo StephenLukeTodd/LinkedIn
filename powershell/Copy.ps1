@@ -1,6 +1,3 @@
-# DEPRECATED: moved to `powershell/Copy.ps1` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 # Define multiple copy jobs as pairs of Source/Destination
 $Jobs = @(
     @{ Source = "D:\Emulation"; Destination = "E:\Emulation" }

@@ -1,6 +1,3 @@
-# DEPRECATED: moved to `powershell/Moving_Anime.ps1` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 # Path to the CSV file
 # Avoid embedding absolute drive paths; set a placeholder or use an environment/relative path
 $csvPath = Join-Path -Path '<CSV_PATH>' -ChildPath 'FolderList.csv'

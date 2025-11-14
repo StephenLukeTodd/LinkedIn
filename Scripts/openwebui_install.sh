@@ -1,6 +1,3 @@
-# DEPRECATED: moved to `scripts/openwebui_install.sh` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 #!/bin/bash
 
 set -e

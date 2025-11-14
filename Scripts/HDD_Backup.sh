@@ -1,5 +1,3 @@
-# # DEPRECATED: moved to `scripts/HDD_Backup.sh` — see that file for the canonical version.
-# # This top-level file is retained for backward compatibility until the repo is fully reorganized.
 #!/bin/bash
 
 set -e

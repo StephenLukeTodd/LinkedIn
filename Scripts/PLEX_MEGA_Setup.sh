@@ -1,7 +1,4 @@
 #!/bin/bash
-# DEPRECATED: moved to `scripts/PLEX_MEGA_Setup.sh` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
 mega-login
 # Destination placeholder: replace with your target volume/path as needed
 DEST="<DEST_VOLUME>/plex"
