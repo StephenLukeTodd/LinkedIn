@@ -1,7 +1,0 @@
-# DEPRECATED: moved to `powershell/KoboldStartup.ps1` — see that file for the canonical version.
-# This top-level file is retained for backward compatibility until the repo is fully reorganized.
-
-# Use environment profile to avoid committing a specific username/path
-$exePath = Join-Path -Path $env:USERPROFILE -ChildPath 'OneDrive\Desktop\AI\koboldcpp_rocm.exe'
-$configPath = Join-Path -Path $env:USERPROFILE -ChildPath 'OneDrive\Desktop\AI\Models\settings.kcpps'
-& "$exePath" --config "$configPath"
