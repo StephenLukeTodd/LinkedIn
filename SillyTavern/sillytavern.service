@@ -1,0 +1,15 @@
+[Unit]
+Description=SillyTavern Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/sillytavern
+ExecStart=/bin/bash start.sh
+Restart=always
+RestartSec=5
+User=yourusername
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

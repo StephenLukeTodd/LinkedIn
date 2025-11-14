@@ -1,0 +1,129 @@
+# -- DATA CONFIGURATION --
+dataRoot: ./data
+
+# -- SERVER CONFIGURATION --
+listen: true
+listenAddress:
+  ipv4: 0.0.0.0
+  ipv6: '[::]'
+protocol:
+  ipv4: true
+  ipv6: false
+dnsPreferIPv6: false
+autorunHostname: "auto"
+port: 8000
+autorunPortOverride: -1
+
+# -- SSL options --
+ssl:
+  enabled: false
+  certPath: "./certs/cert.pem"
+  keyPath: "./certs/privkey.pem"
+
+# -- SECURITY CONFIGURATION --
+whitelistMode: false
+enableForwardedWhitelist: false
+whitelist: []
+whitelistDockerHosts: false
+basicAuthMode: false
+basicAuthUser:
+  username: "user"
+  password: "password"
+enableCorsProxy: true
+enableUserAccounts: false
+enableDiscreetLogin: false
+autheliaAuth: false
+perUserBasicAuth: false
+sessionTimeout: -1
+disableCsrfProtection: false
+securityOverride: true
+
+# -- LOGGING CONFIGURATION --
+logging:
+  enableAccessLog: true
+  minLogLevel: 0
+
+# -- RATE LIMITING CONFIGURATION --
+rateLimiting:
+  preferRealIpHeader: false
+
+# -- ADVANCED CONFIGURATION --
+autorun: false
+avoidLocalhost: false
+
+# -- BACKUP CONFIGURATION --
+backups:
+  common:
+    numberOfBackups: 50
+  chat:
+    enabled: true
+    maxTotalBackups: -1
+    throttleInterval: 10000
+
+# -- THUMBNAILING CONFIGURATION --
+thumbnails:
+  enabled: true
+  format: "jpg"
+  quality: 95
+  dimensions: { 'bg': [160, 90], 'avatar': [96, 144] }
+
+# -- PERFORMANCE-RELATED CONFIGURATION --
+performance:
+  lazyLoadCharacters: false
+  memoryCacheCapacity: '100mb'
+
+allowKeysExposure: false
+skipContentCheck: false
+
+# -- WHITELISTED DOMAINS FOR CARD IMPORT --
+whitelistImportDomains:
+  - localhost
+  - cdn.discordapp.com
+  - files.catbox.moe
+  - raw.githubusercontent.com
+
+# -- API REQUEST OVERRIDES --
+requestOverrides: []
+
+# -- EXTENSIONS CONFIGURATION --
+extensions:
+  enabled: true
+  autoUpdate: true
+  models:
+    autoDownload: true
+    classification: Cohee/distilbert-base-uncased-go-emotions-onnx
+    captioning: Xenova/vit-gpt2-image-captioning
+    embedding: Cohee/jina-embeddings-v2-base-en
+    speechToText: Xenova/whisper-small
+    textToSpeech: Xenova/speecht5_tts
+
+# -- TOKENIZER CONFIG --
+enableDownloadableTokenizers: true
+
+# -- OPENAI CONFIGURATION --
+promptPlaceholder: "[Start a new chat]"
+openai:
+  randomizeUserId: false
+  captionSystemPrompt: ""
+
+# -- DEEPL TRANSLATION CONFIGURATION --
+deepl:
+  formality: default
+
+# -- MISTRAL API CONFIGURATION --
+mistral:
+  enablePrefix: false
+
+# -- OLLAMA API CONFIGURATION --
+ollama:
+  keepAlive: -1
+  batchSize: -1
+
+# -- ANTHROPIC CLAUDE API CONFIGURATION --
+claude:
+  enableSystemPromptCache: false
+  cachingAtDepth: -1
+
+# -- SERVER PLUGIN CONFIGURATION --
+enableServerPlugins: false
+enableServerPluginsAutoUpdate: true

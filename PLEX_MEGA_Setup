@@ -1,0 +1,8 @@
+mega-login
+# Destination placeholder: replace with your target volume/path as needed
+DEST="<DEST_VOLUME>/plex"
+
+# Replace source paths with neutral placeholders to avoid exposing personal folder names
+mega-get "<MEGA_SRC_ANIME>" "${DEST}/"
+mega-get "<MEGA_SRC_TV>" "${DEST}/"
+mega-get "<MEGA_SRC_MOVIES>" "${DEST}/"
