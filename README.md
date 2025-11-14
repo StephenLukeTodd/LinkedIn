@@ -9,7 +9,7 @@ Key skills demonstrated:
 - Cloudflare tunneling and API automation
 - PowerShell automation for Windows file movement and sync
 - Docker usage and deployment automation (installation scripts)
-- DevOps-style scripting: logging, error handling, idempotency, and credentials handling
+- DevOps-style scripting: logging, error handling, and credentials handling
 
 How to read this repo at a glance
 
@@ -37,21 +37,3 @@ Key contents (high level):
  - `ansible/vm_clone_playbook/main_playbook.yml` — the primary playbook for cloning/creating VMs (start here when reviewing the flow).
  - `ansible/vm_clone_playbook/tasks/` — task fragments for disk attachment, network configuration, NIC details, and VM lifecycle management.
  - `ansible/vm_clone_playbook/azure_ansible_helper_suite/` — collection of helper scripts and runbooks used while developing and testing the cloning flow.
-
-Quick reviewer notes / run checklist:
-
- - This demo requires Azure credentials and `az` CLI access; don't run against production without reviewing the playbook and variables.
- - Recommended read order: `ansible/ansible.cfg` → `ansible/vm_clone_playbook/main_playbook.yml` → `ansible/vm_clone_playbook/tasks/*` → helper scripts in `azure_ansible_helper_suite/`.
- - To run locally for evaluation (example):
-
-```bash
-cd "Azure VM Ansible Cloning Demo/ansible"
-# Ensure Azure CLI is authenticated: az login
-# Review variables and inventory, then run the main playbook
-ansible-playbook vm_clone_playbook/main_playbook.yml
-```
-
-Skills demonstrated by this subproject: Ansible playbook design, modular task decomposition, Azure CLI/ARM integration, scripting for environment bootstrap and cleanup, and creating reproducible, auditable infrastructure workflows.
-
-If you'd like, I can add a small README inside `Azure VM Ansible Cloning Demo/ansible/` with step-by-step run instructions and a safe dev/test inventory example.
-
