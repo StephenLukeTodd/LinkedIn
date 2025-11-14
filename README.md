@@ -1,6 +1,6 @@
 # Infrastructure & Automation Scripts
 
-This repository is a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. It's organized to make it easy for a recruiter or technical interviewer to scan the candidate's applied skills quickly.
+This repository is a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. 
 
 Key skills demonstrated:
 
@@ -21,9 +21,6 @@ How to read this repo at a glance
  - `powershell/` — Windows/PowerShell helpers such as `Copy.ps1`, `MovementScript.ps1`, and photo/file movement scripts
 
 
-
----
-_Files include placeholders to avoid exposing personal/machine-specific paths. See per-folder README files for exact usage examples._
 
 **Azure VM Ansible Cloning Demo**
 
