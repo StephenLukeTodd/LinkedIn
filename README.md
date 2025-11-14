@@ -25,3 +25,33 @@ How to read this repo at a glance
 ---
 _Files include placeholders to avoid exposing personal/machine-specific paths. See per-folder README files for exact usage examples._
 
+**Azure VM Ansible Cloning Demo**
+
+ - Location: `Azure VM Ansible Cloning Demo/`
+ - Purpose: Demonstrates an end-to-end Ansible-driven workflow for cloning / provisioning VMs in Azure and includes helper scripts to prepare the environment and perform cleanup. This directory is a compact example of infrastructure-as-code and automation for cloud VM lifecycle tasks.
+
+Key contents (high level):
+
+ - `ansible/ansible.cfg` — Ansible configuration used by the playbooks in this project.
+ - `ansible/arm_ansible_setup.sh` — helper script to bootstrap Azure/Ansible prerequisites (review before running).
+ - `ansible/vm_clone_playbook/main_playbook.yml` — the primary playbook for cloning/creating VMs (start here when reviewing the flow).
+ - `ansible/vm_clone_playbook/tasks/` — task fragments for disk attachment, network configuration, NIC details, and VM lifecycle management.
+ - `ansible/vm_clone_playbook/azure_ansible_helper_suite/` — collection of helper scripts and runbooks used while developing and testing the cloning flow.
+
+Quick reviewer notes / run checklist:
+
+ - This demo requires Azure credentials and `az` CLI access; don't run against production without reviewing the playbook and variables.
+ - Recommended read order: `ansible/ansible.cfg` → `ansible/vm_clone_playbook/main_playbook.yml` → `ansible/vm_clone_playbook/tasks/*` → helper scripts in `azure_ansible_helper_suite/`.
+ - To run locally for evaluation (example):
+
+```bash
+cd "Azure VM Ansible Cloning Demo/ansible"
+# Ensure Azure CLI is authenticated: az login
+# Review variables and inventory, then run the main playbook
+ansible-playbook vm_clone_playbook/main_playbook.yml
+```
+
+Skills demonstrated by this subproject: Ansible playbook design, modular task decomposition, Azure CLI/ARM integration, scripting for environment bootstrap and cleanup, and creating reproducible, auditable infrastructure workflows.
+
+If you'd like, I can add a small README inside `Azure VM Ansible Cloning Demo/ansible/` with step-by-step run instructions and a safe dev/test inventory example.
+
