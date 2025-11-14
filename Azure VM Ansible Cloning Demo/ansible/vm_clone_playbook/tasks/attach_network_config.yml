@@ -1,0 +1,29 @@
+- name: Determine IP allocation method
+  set_fact:
+    private_ip_allocation_method: >-
+      {{ 'Dynamic' if current_nic_item.ip_configurations[0].private_ip_allocation_method not in ['Dynamic', 'Static'] else current_nic_item.ip_configurations[0].private_ip_allocation_method }}
+    public_ip_allocation_method: >-
+      {{ 'Dynamic' if current_nic_item.ip_configurations[0].public_ip_allocation_method not in ['Dynamic', 'Static'] else current_nic_item.ip_configurations[0].public_ip_allocation_method }}
+
+- name: Create the new network interface for the VM
+  azure.azcollection.azure_rm_networkinterface:
+    name: "{{ nic_name_list[nic_index] }}-cloned"
+    resource_group: "{{ target_rg }}"
+    location: "{{ target_location }}"
+    target: "{{ target_location }}"
+    virtual_network: "{{ target_vnet.name }}"
+    subnet_name: "{{ current_nic_item.subnet }}"
+    ip_configurations:
+      - name: "{{ current_nic_item.ip_configurations[0].name }}"
+        private_ip_address: "{{ current_nic_item.ip_configurations[0].private_ip_address }}"
+        private_ip_allocation_method: "{{ private_ip_allocation_method }}"
+        public_ip_allocation_method: "{{ public_ip_allocation_method }}"
+  register: attached_nic
+
+- name: Attach network interface to the VM
+  azure.azcollection.azure_rm_virtualmachine:
+    resource_group: "{{ target_rg }}"
+    name: "{{ vm_name }}"
+    location: "{{ target_location }}"
+    network_interfaces:
+      - "{{ nic_name_list[nic_index] }}-cloned" # Verify attached_nic structure

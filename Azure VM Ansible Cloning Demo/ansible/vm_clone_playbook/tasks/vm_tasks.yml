@@ -1,0 +1,196 @@
+# Gather information of VM that we are currently processing.
+- name: Get VM information
+  azure.azcollection.azure_rm_virtualmachine_info:
+    resource_group: "{{ target_rg }}"
+    name: "{{ current_vm }}"
+  register: vm_info
+
+- name: Return VM info
+  ansible.builtin.debug:
+    var: vm_info
+
+# Extract the VM Name
+- name: Set the VM Name from the VM info
+  set_fact:
+    vm_name: "{{ vm_info.vms[0].name }}"
+
+- name: Display VM Name
+  ansible.builtin.debug:
+    var: vm_name
+
+# Extracting network information by looping through all of the NICs attached to the VM (in case of there being more than one)
+- name: Extract NIC IDs
+  set_fact:
+    nic_ids: "{{ vm_info.vms[0].network_interface_names }}"
+
+# Loop through the NIC IDs to get the network information of the VM's by NICs attached to it
+- name: Loop through the NICs
+  include_tasks: nic_details_tasks.yml
+  loop: "{{ nic_ids }}"
+  loop_control:
+    loop_var: nic_id
+    index_var: nic_index
+
+# Getting the Data Disks of the VM
+- name: Return Data Disks Info
+  set_fact:
+    data_disks_list: "{{ vm_info.vms[0].data_disks }}"
+
+- name: Return Data Disks Info
+  ansible.builtin.debug:
+    var: data_disks_list
+
+# Loop through all of the data disks of the VM and then create a data disk from those snapshots
+- name: Loop through the list of Data Disks of the VM
+  include_tasks: data_disks_tasks.yml
+  loop: "{{ data_disks_list }}"
+  loop_control:
+    loop_var: current_data_disk
+    index_var: current_index
+
+# Check Managed Disk Info List and Cloned Data Disks List are populated
+- name: Display Managed Disk Info List
+  ansible.builtin.debug:
+    var: managed_disk_info_list
+
+- name: Display Cloned Data Disks List
+  ansible.builtin.debug:
+    var: cloned_data_disks_list
+
+# Extract OS disk information from VM_INFO
+- name: Extract OS disk Information
+  set_fact:
+    os_disk_id: "{{ vm_info.vms[0].os_disk.managed_disk.id }}"
+    os_disk_name: "{{ vm_info.vms[0].os_disk.name }}"
+
+- name: Display OS Disk Information
+  ansible.builtin.debug:
+    msg:
+      - "OS Disk ID: {{ os_disk_id }}"
+      - "OS Disk Name: {{ os_disk_name }}"
+
+# Retrieve information about the current OS disk
+- name: Get current OS disk information
+  azure.azcollection.azure_rm_manageddisk_info:
+    resource_group: "{{ target_rg }}"
+    name: "{{ os_disk_name }}"
+  register: os_disk_info
+
+- name: Display OS Disk Info
+  ansible.builtin.debug:
+    var: os_disk_info
+
+- name: Set OS Disk Size
+  set_fact:
+    os_disk_size: "{{ os_disk_info.ansible_info.azure_managed_disk[0].disk_size_gb }}"
+
+# Create a snapshot from the existing managed OS disk
+- name: Create a snapshot from the existing managed OS disk
+  azure.azcollection.azure_rm_snapshot:
+    resource_group: "{{ target_rg }}"
+    name: "{{ vm_name }}-osdisk-snapshot-{{ os_disk_name }}"
+    location: "{{ target_location }}"
+    creation_data:
+      create_option: Copy
+      source_id: "{{ os_disk_id }}"
+  register: current_os_disk_snapshot
+
+- name: Display OS Disk Snapshot Info
+  ansible.builtin.debug:
+    var: current_os_disk_snapshot
+
+# Create OS Managed Disk from the snapshot
+- name: Create OS Managed Disk from Snapshot
+  azure.azcollection.azure_rm_manageddisk:
+    resource_group: "{{ target_rg }}"
+    name: "{{ vm_name }}-osdisk-managed-disk-{{ os_disk_name }}"
+    location: "{{ target_location }}"
+    create_option: copy
+    source_resource_id: "{{ current_os_disk_snapshot.id }}"  # Use snapshot ID
+    disk_size_gb: "{{ os_disk_size }}"
+    state: present
+  register: current_os_disk_managed_disk
+
+# Get OS Managed Disk Information
+- name: Get OS Managed Disk Information
+  azure.azcollection.azure_rm_manageddisk_info:
+    resource_group: "{{ target_rg }}"
+    name: "{{ vm_name }}-osdisk-managed-disk-{{ os_disk_name }}"
+  register: managed_os_disks_info
+
+- name: Display OS Managed Disk Info
+  ansible.builtin.debug:
+    var: managed_os_disks_info
+
+# Debug: VM config details
+- name: Set VM configuration
+  set_fact:
+    os_disk_caching_output: "{{ vm_info.vms[0].os_disk.caching }}"
+    os_disk_managed_id_output: "{{ managed_os_disks_info.ansible_info.azure_managed_disk[0].id }}"
+    os_disk_type_output: "{{ vm_info.vms[0].os_disk.os_type }}"
+    os_disk_storage_type_output: "{{ managed_os_disks_info.ansible_info.azure_managed_disk[0].sku.name | default('Standard_LRS') }}"
+    image_offer_output: "{{ vm_info.vms[0].storage_profile.image.offer }}"
+    image_publisher_output: "{{ vm_info.vms[0].storage_profile.image.publisher }}"
+    image_sku_output: "{{ vm_info.vms[0].storage_profile.image.sku }}"
+    image_version_output: "{{ vm_info.vms[0].storage_profile.image.version }}"
+    security_type_output: "{{ vm_info.vms[0].security_profile.security_type }}"
+    uefi_vtpm_output: "{{ vm_info.vms[0].security_profile.uefi_settings.v_tpm_enabled }}"
+    uefi_secureboot_output: "{{ vm_info.vms[0].security_profile.uefi_settings.secure_boot_enabled }}"
+    nic_information_list_output: "{{ nic_information_list }}"
+    data_disks_list_output: "{{ data_disks_list }}"
+- meta: end_play 
+
+
+# Create temporary NIC
+- name: Create temporary NIC
+  ansible.builtin.shell: |
+    az network nic create \
+    --resource-group "{{ target_rg }}" \
+    --name "{{ vm_name }}-temp-nic" \
+    --vnet-name "{{ target_vnet }}" \
+    --subnet "{{ target_subnet }}" \
+    --location "{{ target_location }}" \
+    --query "NewNIC.id" -o tsv
+  register: temp_nic
+  changed_when: true
+
+# Create VM with temporary NIC
+- name: Create VM with temporary NIC
+  ansible.builtin.shell: |
+    az vm create \
+    --name "{{ vm_name }}-cloned" \
+    --resource-group "{{ target_rg }}" \
+    --location "{{ target_location }}" \
+    --size "{{ vm_size }}" \
+    --nics "{{ temp_nic.stdout }}" \
+    --image "{{ image_publisher_output }}:{{ image_offer_output }}:{{ image_sku_output }}:{{ image_version_output }}" \
+    --admin-username "{{ vm_info.vms[0].admin_username }}" \
+    --storage-sku "{{ os_disk_storage_type_output }}" \
+    --security-type "{{ security_type_output }}" \
+    --enable-vtpm "{{ uefi_vtpm_output }}" \
+    --enable-secure-boot "{{ uefi_secureboot_output }}"
+  args:
+    executable: /bin/bash
+
+# end play
+- name: end play
+  set_fact:
+    disk_encryption_set: "<disk_encryption_set_id>"  # ID of the disk encryption set
+    storage_blob_name: "<storage_blob_name>.vhd"      # Must end with .vhd
+    storage_container_name: "<storage_container_name>" # Container name for VHD blobs
+
+# Loop through the list of Data Disks of the VM
+- name: Loop through the list of Data Disks of the VM
+  include_tasks: attach_data_disks.yml
+  loop: "{{ cloned_data_disks_list }}"
+  loop_control:
+    loop_var: cloned_data_disk
+    index_var: attached_data_disk
+
+# Add identified vnet and subnet and create a new network interface to integrate into the vm
+- name: Loop through the NICs, create the vnet and subnet with IP configs, and add them to the new VM
+  include_tasks: attach_network_config.yml
+  loop: "{{ nic_information_list }}"
+  loop_control:
+    loop_var: current_nic_item
+    index_var: nic_index

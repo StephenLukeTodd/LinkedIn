@@ -1,0 +1,3 @@
+## Azure + Ansible Cheat Sheet
+
+Common CLI commands and Ansible mappings.

@@ -1,0 +1,66 @@
+- name: Assign lun index to be one more than the current index so it starts incrementing at 1 instead of 0. Extract Data Disk ID of current item.
+  set_fact:
+    lun_index: "{{ current_index | int + lun_index_start }}"
+    data_disk_id: "{{ data_disks_list[current_index].managed_disk_id }}"
+    data_disk_name: "{{ data_disks_list[current_index].name }}"
+
+- name: Debug LUN index info
+  ansible.builtin.debug:
+    msg:
+      - "LUN Index: {{ lun_index }}"
+      - "Data Disk ID: {{ data_disk_id }}"
+      - "Data Disk Name: {{ data_disk_name }}"
+
+# Extract the Data Disk Info
+- name: Get current data disk info
+  azure.azcollection.azure_rm_manageddisk_info:
+    resource_group: "{{ target_rg }}"
+    name: "{{ data_disk_name }}"
+  register: data_disk_info
+
+- name: Debug Data Disk Info
+  ansible.builtin.debug:
+    var: data_disk_info
+
+- name: Set data disk size in GB
+  set_fact:
+    data_disk_size: "{{ data_disk_info.ansible_info.azure_managed_disk[0].disk_size_gb | int }}"
+
+- name: Create a snapshot by copying an existing managed disk.
+  azure.azcollection.azure_rm_snapshot:
+    resource_group: "{{ target_rg }}"
+    name: "{{ vm_name }}-datadisk-snapshot-{{ data_disk_name }}"
+    location: "{{ target_location }}"
+    creation_data:
+      create_option: Copy
+      source_id: "{{ data_disk_id }}"
+  register: current_data_disk_snapshot
+
+- name: Return Data Disk Snapshot Info
+  ansible.builtin.debug:
+    var: current_data_disk_snapshot
+
+- name: Create Data Managed Disk from the Snapshot of the current Data Disk
+  azure.azcollection.azure_rm_manageddisk:
+    resource_group: "{{ target_rg }}"
+    name: "{{ vm_name }}-datadisk-managed-disk-{{ data_disk_name }}"
+    location: "{{ target_location }}"
+    create_option: copy
+    source_resource_id: "{{ current_data_disk_snapshot.id }}"  # Use snapshot ID
+    disk_size_gb: "{{ data_disk_size }}"  # Correctly reference disk_size_gb
+    state: present
+  register: current_data_disk_managed_disk
+
+- name: Get Data Managed Disk Information
+  azure.azcollection.azure_rm_manageddisk_info:
+    resource_group: "{{ target_rg }}"
+    name: "{{ vm_name }}-datadisk-managed-disk-{{ data_disk_name }}"
+  register: managed_data_disks_info
+
+- name: Append managed disk details to cloned data disks list
+  set_fact:
+    cloned_data_disks_list: "{{ cloned_data_disks_list | default([]) + [{'name': vm_name ~ '-datadisk-managed-disk-' ~ data_disk_name, 'disk_size_gb': data_disk_size }] }}"
+
+- name: Append managed disk information to the list
+  set_fact:
+    managed_disk_info_list: "{{ managed_disk_info_list + [managed_data_disks_info] }}"

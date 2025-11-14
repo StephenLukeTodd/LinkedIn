@@ -1,0 +1,8 @@
+- name: Attach managed disk to vm
+  azure.azcollection.azure_rm_manageddisk:
+    name: "{{ cloned_data_disks_list[attached_data_disk].name }}"
+    location: "{{ target_location }}"
+    resource_group: "{{ target_rg }}"
+    disk_size_gb: "{{ cloned_data_disks_list[attached_data_disk].disk_size_gb }}"
+    managed_by: "{{ vm_name }}"
+    attach_caching: "{{ cloned_data_disks_list[attached_data_disk].attach_caching }}"

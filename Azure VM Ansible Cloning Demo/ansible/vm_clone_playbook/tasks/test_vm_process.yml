@@ -1,0 +1,197 @@
+- hosts: localhost
+  gather_facts: true
+  vars:
+    vm_os_disk_name: "<CLONED_VM_OS_DISK_NAME>"
+
+  tasks:
+    - name: Create dummy VNet and subnet if they don't exist
+      ansible.builtin.shell: |
+        az network vnet show --name dummyVNet --resource-group <AZURE_RESOURCE_GROUP> >/dev/null 2>&1 || az network vnet create \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name dummyVNet \
+          --address-prefix 10.0.0.0/16 \
+          --subnet-name dummy-subnet \
+          --subnet-prefix 10.0.0.0/24
+
+        az network vnet subnet show --name dummy-subnet --vnet-name dummyVNet --resource-group <AZURE_RESOURCE_GROUP> >/dev/null 2>&1 || az network vnet subnet create \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --vnet-name dummyVNet \
+          --name dummy-subnet \
+          --address-prefix 10.0.0.0/24
+      args:
+        executable: /bin/bash
+
+    - name: Create dummy VM with static image and network config
+      ansible.builtin.shell: |
+        az vm create \
+          --name <CLONED_VM_NAME> \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --location <AZURE_LOCATION> \
+          --size <VM_SIZE> \
+          --image <IMAGE_REFERENCE> \
+          --vnet-name dummyVNet \
+          --subnet dummy-subnet \
+          --no-wait
+      args:
+        executable: /bin/bash
+
+    - name: Wait for VM provisioning to complete
+      ansible.builtin.shell: |
+        az vm wait \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME> \
+          --created
+      args:
+        executable: /bin/bash
+
+    - name: Deallocate the cloned VM
+      ansible.builtin.shell: |
+        az vm deallocate \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME>
+      args:
+        executable: /bin/bash
+
+    - name: Detach NICs from cloned VM
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "<AZURE_RESOURCE_GROUP>"
+        name: "<CLONED_VM_NAME>"
+        network_interfaces: []
+        state: present
+
+    # Testing Code 
+    - name: Create a test network interface with dns servers
+      azure_rm_networkinterface:
+        name: test001
+        resource_group: <AZURE_RESOURCE_GROUP>
+        virtual_network: dummyVNet
+        subnet_name: dummy-subnet
+        dns_servers:
+          - 8.8.8.8
+
+    - name: Get expected OS disk name from existing VM
+      ansible.builtin.shell: |
+        az vm show \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME> \
+          --query "storageProfile.osDisk.name" \
+          --output tsv
+      register: expected_os_disk_name
+      args:
+        executable: /bin/bash
+
+    - name: Create blank managed OS disk (not from image)
+      azure.azcollection.azure_rm_manageddisk:
+        name: "{{ expected_os_disk_name.stdout }}"
+        resource_group: "<AZURE_RESOURCE_GROUP>"
+        location: "<AZURE_LOCATION>"
+        create_option: empty
+        disk_size_gb: 30
+        os_type: linux
+        state: present
+      register: cloned_vm_os_disk
+
+    - name: Create new blank 10 GB data disk
+      azure.azcollection.azure_rm_manageddisk:
+        name: <CLONED_VM_DATA_DISK_NAME>
+        resource_group: "<AZURE_RESOURCE_GROUP>"
+        location: "<AZURE_LOCATION>"
+        create_option: empty
+        disk_size_gb: 10
+        storage_account_type: Standard_LRS
+        state: present
+      register: cloned_vm_data_disk
+
+    - name: Debug data disk output
+      debug:
+        var: cloned_vm_data_disk
+    # End Testing Code
+
+
+    - name: Attach test NIC to cloned VM
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "<AZURE_RESOURCE_GROUP>"
+        name: "<CLONED_VM_NAME>"
+        network_interfaces:
+          - test001
+        state: present
+
+    - name: Detach existing OS disk from VM using az CLI
+      ansible.builtin.shell: |
+        az vm update \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME> \
+          --set storageProfile.osDisk='null'
+      args:
+        executable: /bin/bash
+
+    - name: Attach new OS disk to VM using az CLI
+      ansible.builtin.shell: |
+        az vm update \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME> \
+          --set storageProfile.osDisk.managedDisk.id="{{ cloned_vm_os_disk.state.id }}"
+      args:
+        executable: /bin/bash
+
+    - name: Attach data disk to VM using az CLI
+      ansible.builtin.shell: |
+        az vm disk attach \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --vm-name <CLONED_VM_NAME> \
+          --name <CLONED_VM_DATA_DISK_NAME>
+      args:
+        executable: /bin/bash
+
+    - name: Start the cloned VM
+      ansible.builtin.shell: |
+        az vm start \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME>
+      args:
+        executable: /bin/bash
+
+    - name: Verify OS disk is attached
+      ansible.builtin.shell: |
+        az vm show \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME> \
+          --query "storageProfile.osDisk.managedDisk.id" \
+          --output tsv
+      register: os_disk_check
+      args:
+        executable: /bin/bash
+
+    - debug:
+        msg: "Attached OS Disk ID: {{ os_disk_check.stdout }}"
+
+    - name: Verify data disk is attached
+      ansible.builtin.shell: |
+        az vm show \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME> \
+          --query "storageProfile.dataDisks[].name" \
+          --output tsv
+      register: data_disk_check
+      args:
+        executable: /bin/bash
+
+    - debug:
+        msg: "Attached Data Disks: {{ data_disk_check.stdout }}"
+
+    - name: Check VM running state
+      ansible.builtin.shell: |
+        az vm get-instance-view \
+          --resource-group <AZURE_RESOURCE_GROUP> \
+          --name <CLONED_VM_NAME> \
+          --query "instanceView.statuses[?code=='PowerState/running'].displayStatus" \
+          --output tsv
+      register: vm_state_check
+      args:
+        executable: /bin/bash
+
+    - debug:
+        msg: "VM State: {{ vm_state_check.stdout }}"
+
+    - name: End play
+      meta: end_play

@@ -1,0 +1,28 @@
+- name: Update network interface configuration with new subnet
+  azure.azcollection.azure_rm_networkinterface:
+    resource_group: "{{ target_resource_group }}"
+    name: "{{ nic_info.name }}"
+    location: "{{ target_location }}"
+    subnet_name: "{{ subnet_name }}"  # Replace with actual variable if defined
+    virtual_network_name: "{{ virtual_network_name }}"  # Replace with actual variable if defined
+    ip_configuration: "{{ original_nic_ipconfig }}"
+  when: nic_iterator == 0
+
+- name: Perform action when nic_iterator is not zero
+  azure.azcollection.azure_rm_networkinterface:
+    resource_group: "{{ target_resource_group }}"
+    name: "{{ nic_info.name }}"
+    location: "{{ target_location }}"
+    subnet_name: "{{ subnet_name }}"  # Replace with actual variable if defined
+    virtual_network_name: "{{ virtual_network_name }}"  # Replace with actual variable if defined
+    ip_configuration: "{{ original_nic_ipconfig }}"
+  register: nic_result
+  when: nic_iterator != 0
+
+- name: Iterate to next nic
+  set_fact:
+    nic_iterator: "{{ nic_iterator + 1 }}"
+
+- name: Append nic_result to new_nic_ipconfig
+  set_fact:
+    new_nic_ipconfig: "{{ new_nic_ipconfig + [nic_result] }}"

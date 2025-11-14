@@ -1,0 +1,29 @@
+- name: Execute Azure CLI command to list storage accounts
+  ansible.builtin.shell: |
+    az storage account list --query "[].{Name:name}" --output json
+  register: cli_output
+
+- name: Extract and display storage account names
+  debug:
+    msg: "{{ cli_output.stdout | from_json | map(attribute='Name') | join(', ') }}"
+
+- name: Set storage account names as a list
+  set_fact:
+    storage_account_list: "{{ cli_output.stdout | from_json | map(attribute='Name') | list }}"
+
+- name: Check if target storage account exists
+  set_fact:
+    found_storage_account: "{{ target_storage_account if target_storage_account in storage_account_list else None }}"
+
+- name: Display found storage account
+  debug:
+    var: found_storage_account
+  when: found_storage_account is not none
+
+- name: Gather Azure Subscription Info
+  azure.azcollection.azure_rm_subscription_info:
+  register: subscription_info
+
+- name: Print Azure Subscription ID
+  ansible.builtin.debug:
+    msg: "{{ subscription_info.subscriptions[0].subscription_id }}"

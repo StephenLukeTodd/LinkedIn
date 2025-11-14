@@ -1,0 +1,47 @@
+- name: Clone VM
+  hosts: localhost
+  gather_facts: true
+  vars:
+    # Updating this to grab:
+    # vnet_address_prefix, subnet_prefix, target_dns_servers, image_reference, data_disk_size, and other values.
+    # this is static for now for testing.
+
+    # Replace with your target VM names (or set via extra_vars when running)
+    list_of_vms: "<VM_NAME_LIST>"
+
+    current_vm: "" # Loop Variable
+    target_rg: "<AZURE_RESOURCE_GROUP>"
+    target_location: "<AZURE_LOCATION>"
+    target_storage_account: "<STORAGE_ACCOUNT>"
+    target_vnet:
+      name: "<VNET_NAME>"
+      subnets:
+        - name: "<SUBNET1_NAME>"
+          target_address_prefix: 10.0.0.0/16
+          target_subnet_prefix: 10.0.0.0/24
+        - name: "<SUBNET2_NAME>"
+          target_subnet_prefix: 10.0.1.0/24
+        - name: "<SUBNET3_NAME>"
+          target_subnet_prefix: 10.0.2.0/24
+    target_dns_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+    vm_size: "<VM_SIZE>"
+    image_reference: "<IMAGE_REFERENCE>"
+    data_disk_size: <DATA_DISK_SIZE>
+    nic_information_list: []
+    cloned_data_disks: []
+    storage_data_disks: []
+    managed_disk_info_list: []
+    nic_name_list: []
+    lun_index_start: 1 #Start the index variable of the data disk loop at 1 because the Lun number of the OS Disk is zero
+
+  tasks:
+    - name: Grab the existing storage account and store it
+      import_tasks: tasks/existing_storage_account.yml
+
+    - name: Loop through VMs in the list
+      include_tasks: tasks/vm_tasks.yml
+      loop: "{{ list_of_vms }}"
+      loop_control:
+        loop_var: current_vm

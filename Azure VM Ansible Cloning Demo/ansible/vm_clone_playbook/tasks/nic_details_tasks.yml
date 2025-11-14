@@ -1,0 +1,33 @@
+# Getting Interface info from NIC name
+- name: Get NIC name from ID
+  set_fact:
+    nic_name: "{{ nic_id.split('/')[-1] }}"
+
+- name: Get NIC information
+  azure.azcollection.azure_rm_networkinterface_info:
+    resource_group: "{{ target_rg }}"
+    name: "{{ nic_name }}"
+  register: nic_info
+
+# Extract display that information
+- name: Extract Subnet, VNet, and IP configurations
+  set_fact:
+    subnet: "{{ nic_info.networkinterfaces[0].subnet }}"
+    vnet: "{{ nic_info.networkinterfaces[0].virtual_network }}"
+    ip_configurations: "{{ nic_info.networkinterfaces[0].ip_configurations }}"
+
+- name: Append NIC information to list of NICs
+  set_fact:
+    nic_information_list: "{{ nic_information_list + [ {'nic_id': nic_id, 'subnet': subnet, 'vnet': vnet, 'ip_configurations': ip_configurations} ] }}"
+
+- name: Build a list of nic names
+  set_fact:
+    nic_name_list: "{{ nic_name_list + [ nic_name ] }}"
+
+- name: Display network details
+  debug:
+    msg:
+      - "Subnet: {{ subnet }}"
+      - "VNet: {{ vnet }}"
+      - "IP Configurations: {{ ip_configurations }}"
+      - "NIC Name List: {{ nic_name_list }}"
