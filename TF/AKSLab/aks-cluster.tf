@@ -11,6 +11,14 @@ resource "azurerm_kubernetes_cluster" "default" {
     node_count      = 1
     vm_size         = "Standard_D2s_v3"
     os_disk_size_gb = 30
+    vnet_subnet_id  = azurerm_subnet.aks.id
+  }
+
+  network_profile {
+    network_plugin = "azure"
+    network_policy = "calico"
+    service_cidr   = "10.1.0.0/16"
+    dns_service_ip = "10.1.0.10"
   }
   storage_profile {
     blob_driver_enabled = true # Required for Blob storage PVs
