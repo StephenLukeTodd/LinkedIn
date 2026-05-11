@@ -25,14 +25,8 @@ resource "azurerm_storage_account" "default" {
 
   # Blob Service Configuration
   blob_properties {
-    versioning_enabled = true
-    change_feed_enabled = true
-    delete_retention_policy {
-      days = 30
-    }
-    container_delete_retention_policy {
-      days = 30
-    }
+    versioning_enabled = false
+    change_feed_enabled = false
   }
 
   tags = {
