@@ -1,6 +1,6 @@
-# Azure Kubernetes Service (AKS) with Automatic Service Principal, Key Vault & Secure Blob Storage
+# Azure Kubernetes Service (AKS) Lab with Secure Storage Integration
 
-This Terraform configuration deploys an AKS cluster with completely automated service principal creation, Azure Key Vault integration, and secure blob storage. No manual setup or external credentials required.
+This Terraform configuration deploys a complete AKS lab environment with automated service principal creation, Azure Key Vault integration, secure blob storage, and network whitelisting for storage access.
 
 ## Overview
 
@@ -10,6 +10,8 @@ The configuration automatically:
 - Stores all credentials in Azure Key Vault
 - Deploys an AKS cluster using the generated service principal
 - Creates a secure blob storage account with enterprise-grade security
+- Sets up custom Virtual Network with dynamic IP allocation
+- Whitelists AKS cluster subnet for secure storage access
 - Provides secure access to all stored credentials and storage resources
 
 ## Architecture
@@ -42,6 +44,8 @@ The configuration automatically:
 - ✅ **Secure Credential Generation**: Service principal with strong password
 - ✅ **Key Vault Storage**: All credentials stored securely
 - ✅ **Secure Blob Storage**: Enterprise-grade security with private access
+- ✅ **Network Integration**: Custom VNet with dynamic IP allocation
+- ✅ **Storage Whitelisting**: AKS subnet specifically whitelisted for storage access
 - ✅ **Random Naming**: Resources use random prefixes for uniqueness
 - ✅ **Proper Access Control**: Service principal has Key Vault and Storage permissions
 - ✅ **Clean Outputs**: All credentials and resource info available via Terraform outputs
@@ -83,11 +87,13 @@ That's it! The configuration will automatically create everything needed.
 
 ### Azure Resources
 - **Resource Group**: `MooRG` (configurable)
+- **Virtual Network**: `{random-prefix}-vnet` with dynamic IP allocation
+- **AKS Subnet**: `aks-subnet` with proper delegation for AKS
 - **Azure AD Application**: `{random-prefix}-aks-sp`
 - **Service Principal**: With automatically generated credentials
 - **Key Vault**: `{random-prefix}-kv` with stored secrets
-- **AKS Cluster**: `{random-prefix}-aks` with 1 node pool
-- **Storage Account**: `{random-prefix}-sa` with secure blob storage
+- **AKS Cluster**: `{random-prefix}-aks` with custom networking
+- **Storage Account**: `{random-prefix}-sa` with network whitelisting
 
 ### Key Vault Secrets
 - `aks-sp-app-id`: Service principal client ID
@@ -95,7 +101,8 @@ That's it! The configuration will automatically create everything needed.
 - `aks-sp-tenant-id`: Azure AD tenant ID
 
 ### Storage Account Features
-- **Secure Access**: Public network access disabled
+- **Secure Access**: Network rules deny all traffic except AKS subnet
+- **Network Whitelisting**: AKS cluster subnet explicitly allowed
 - **Containers**: `data` and `logs` containers (private access)
 - **Data Protection**: Simplified configuration without versioning or retention policies
 - **Encryption**: TLS 1.2 required, HTTPS only
@@ -128,14 +135,27 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-app-password
 az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 ```
 
+## Network Configuration
+
+### Dynamic IP Allocation
+- **Virtual Network**: Uses randomly generated private IP space (e.g., `42.0.0.0/16`)
+- **AKS Subnet**: Allocated as `${random_octet}.1.0/24` (e.g., `42.1.0/24`)
+- **Avoids Conflicts**: No hardcoded IP addresses, suitable for shared environments
+
+### Storage Access Security
+- **Default Deny**: Storage account denies all network access by default
+- **AKS Whitelist**: Only the AKS cluster subnet can access storage
+- **Azure Services Bypass**: Management operations still allowed
+
 ## Configuration Files
 
 | File | Purpose |
 |------|---------|
 | `main.tf` | Core infrastructure, service principal creation, and outputs |
-| `aks-cluster.tf` | AKS cluster configuration using generated service principal |
+| `network.tf` | Virtual Network and subnet configuration with dynamic IP allocation |
+| `aks-cluster.tf` | AKS cluster configuration with custom networking |
 | `aks-kv.tf` | Key Vault creation and credential storage |
-| `storage-account.tf` | Secure blob storage account with enterprise security features |
+| `storage-account.tf` | Secure blob storage account with network whitelisting |
 | `variables.tf` | Input variables (resource group name and location) |
 
 ## Variables
@@ -162,13 +182,15 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 
 1. **Automatic Credential Generation**: No manual password creation
 2. **Secure Storage**: All secrets stored in Azure Key Vault
-3. **Access Control**: Service principal has appropriate Key Vault and Storage permissions
-4. **Audit Trail**: Key Vault provides access logging
-5. **No Hardcoded Secrets**: Everything generated and stored dynamically
-6. **Storage Security**: Public network access disabled, private containers only
-7. **Encryption Enforcement**: TLS 1.2 required, HTTPS-only access
-8. **Identity-Based Auth**: Microsoft Entra ID authentication (shared keys disabled)
-9. **Simplified Configuration**: Streamlined storage without complex data protection features
+3. **Network Isolation**: Storage account access restricted to AKS subnet only
+4. **Dynamic IP Allocation**: No hardcoded network addresses
+5. **Access Control**: Service principal has appropriate Key Vault and Storage permissions
+6. **Audit Trail**: Key Vault provides access logging
+7. **No Hardcoded Secrets**: Everything generated and stored dynamically
+8. **Storage Security**: Network rules with default deny, explicit AKS whitelist
+9. **Encryption Enforcement**: TLS 1.2 required, HTTPS-only access
+10. **Identity-Based Auth**: Microsoft Entra ID authentication (shared keys disabled)
+11. **Simplified Configuration**: Streamlined storage without complex data protection features
 
 ## AKS Cluster Specifications
 
@@ -176,14 +198,19 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 - **Node Pool**: 1 node (configurable)
 - **VM Size**: Standard_D2s_v3
 - **OS Disk**: 30 GB
+- **Network Plugin**: Azure CNI with custom VNet
+- **Subnet**: Dedicated AKS subnet with proper delegation
+- **Storage Profile**: Blob driver enabled for persistent volumes
 - **Authentication**: Service principal with Key Vault-stored credentials
 - **RBAC**: Enabled
+- **OIDC Issuer**: Enabled
 - **Tags**: Environment: "Demo"
 
 ## Storage Account Specifications
 
 - **Account Type**: StorageV2 (Standard LRS)
-- **Access**: Public network disabled, private containers
+- **Network Security**: Default deny with AKS subnet whitelisted
+- **Access**: Private containers, no public network access
 - **Authentication**: Microsoft Entra ID only (shared keys disabled)
 - **Encryption**: TLS 1.2 required, HTTPS-only access
 - **Containers**: `data` and `logs` (private access)
