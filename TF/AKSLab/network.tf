@@ -24,12 +24,4 @@ resource "azurerm_subnet" "aks" {
   address_prefixes     = ["${random_integer.vnet_octet.result}.0.1.0/24"]
 
   service_endpoints = ["Microsoft.Storage"]
-
-  delegation {
-    name = "aks-delegation"
-    service_delegation {
-      name    = "Microsoft.ContainerService/managedClusters"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
-    }
-  }
 }
