@@ -17,11 +17,10 @@ resource "azurerm_storage_account" "default" {
   # Authentication Configuration
   shared_access_key_enabled         = true
   
-  # Network Rules Configuration
+  # Network Rules Configuration - Simplified for demo
   network_rules {
-    default_action             = "Deny"
-    bypass                     = ["AzureServices"]
-    virtual_network_subnet_ids = [azurerm_subnet.aks.id]
+    default_action = "Allow"
+    bypass         = ["AzureServices"]
   }
 
   # Blob Service Configuration
