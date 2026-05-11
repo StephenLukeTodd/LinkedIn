@@ -1,7 +1,3 @@
-# =============================================================================
-# Azure Storage Account for Blob Storage
-# =============================================================================
-
 resource "azurerm_storage_account" "default" {
   name                     = "${random_pet.prefix.id}sa"
   resource_group_name      = azurerm_resource_group.default.name
@@ -46,10 +42,6 @@ resource "azurerm_storage_account" "default" {
   }
 }
 
-# =============================================================================
-# Blob Storage Containers
-# =============================================================================
-
 resource "azurerm_storage_container" "data" {
   name                  = "data"
   storage_account_name  = azurerm_storage_account.default.name
@@ -62,13 +54,24 @@ resource "azurerm_storage_container" "logs" {
   container_access_type = "private"
 }
 
-# =============================================================================
-# Role-Based Access Control (RBAC)
-# =============================================================================
-
+# Grant Storage Blob Data Contributor to Service Principal (AKS Cluster)
 resource "azurerm_role_assignment" "storage_blob_contributor" {
   scope                = azurerm_storage_account.default.id
   role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azuread_service_principal.aks_sp.object_id
+}
+
+# Grant Storage Queue Data Contributor to Service Principal (for AKS logging)
+resource "azurerm_role_assignment" "storage_queue_contributor" {
+  scope                = azurerm_storage_account.default.id
+  role_definition_name = "Storage Queue Data Contributor"
+  principal_id         = azuread_service_principal.aks_sp.object_id
+}
+
+# Grant Storage Account Contributor to Service Principal (for full access)
+resource "azurerm_role_assignment" "storage_account_contributor" {
+  scope                = azurerm_storage_account.default.id
+  role_definition_name = "Storage Account Contributor"
   principal_id         = azuread_service_principal.aks_sp.object_id
 }
 

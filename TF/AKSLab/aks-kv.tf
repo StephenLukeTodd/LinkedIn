@@ -1,6 +1,3 @@
-# =============================================================================
-# Azure Key Vault for Service Principal Credentials
-# =============================================================================
 
 resource "azurerm_key_vault" "default" {
   name                        = "${random_pet.prefix.id}-kv"
@@ -55,5 +52,17 @@ resource "azurerm_key_vault_secret" "app_password" {
 resource "azurerm_key_vault_secret" "tenant_id" {
   name         = "aks-sp-tenant-id"
   value        = data.azuread_client_config.current.tenant_id
+  key_vault_id = azurerm_key_vault.default.id
+}
+
+resource "azurerm_key_vault_secret" "storage_account_name" {
+  name         = "storage-account-name"
+  value        = azurerm_storage_account.default.name
+  key_vault_id = azurerm_key_vault.default.id
+}
+
+resource "azurerm_key_vault_secret" "storage_account_endpoint" {
+  name         = "storage-account-endpoint"
+  value        = azurerm_storage_account.default.primary_blob_endpoint
   key_vault_id = azurerm_key_vault.default.id
 }
