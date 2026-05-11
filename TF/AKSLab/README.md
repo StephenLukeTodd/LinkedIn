@@ -1,33 +1,24 @@
 # Azure Kubernetes Service (AKS) with Key Vault Integration
 
-This Terraform configuration deploys an AKS cluster with Azure Key Vault integration for secure credential management.
+This Terraform configuration deploys an AKS cluster with Azure Key Vault integration for secure credential management. The configuration automatically creates a service principal and stores all credentials in Azure Key Vault.
 
 ## Architecture
 
 - **AKS Cluster**: Kubernetes cluster with random naming
+- **Azure AD Service Principal**: Automatically created with secure credentials
 - **Azure Key Vault**: Secure storage for service principal credentials
-- **Key Vault CSI Driver**: Enables pods to access Key Vault secrets
-- **Secret Provider Class**: Kubernetes resource for Key Vault access
+- **Key Vault Secrets**: App ID, password, and tenant ID stored automatically
 
-## Setup Instructions
+## Features
 
-### 1. Update terraform.tfvars
+- **Automatic Service Principal Creation**: No manual setup required
+- **Secure Credential Storage**: All credentials stored in Azure Key Vault
+- **Zero Manual Configuration**: Everything created via Terraform
+- **Proper Access Control**: Service principal has Key Vault access permissions
 
-Copy `terraform.tfvars.example` to `terraform.tfvars` and update with your values:
+## Deployment
 
-```hcl
-appId     = "your-service-principal-app-id"
-password  = "your-service-principal-password"
-tenant_id = "your-azure-ad-tenant-id"
-```
-
-### 2. Get your Azure AD Tenant ID
-
-```bash
-az account show --query tenantId -o tsv
-```
-
-### 3. Deploy Infrastructure
+### 1. Deploy Infrastructure
 
 ```bash
 terraform init
@@ -35,12 +26,47 @@ terraform plan
 terraform apply
 ```
 
-## Key Vault Integration Features
+The deployment will automatically:
+- Create a new Azure AD application and service principal
+- Generate a secure password
+- Store all credentials in Azure Key Vault
+- Deploy the AKS cluster using the generated service principal
 
-- **Secure Storage**: Service principal credentials stored in Azure Key Vault
-- **Automatic Rotation**: Secrets can be rotated automatically
-- **Kubernetes Integration**: Secrets synced as Kubernetes secrets
-- **Pod Access**: Pods can access Key Vault secrets directly via CSI driver
+### 2. Access Credentials
+
+After deployment, you can access the stored credentials:
+
+```bash
+# Get outputs (shows service principal credentials)
+terraform output
+
+# Access credentials directly from Key Vault
+az keyvault secret show --vault-name <key-vault-name> --name aks-sp-app-id
+az keyvault secret show --vault-name <key-vault-name> --name aks-sp-app-password
+az keyvault secret show --vault-name <key-vault-name> --name aks-sp-tenant-id
+```
+
+## Outputs
+
+- `service_principal_app_id`: Generated service principal client ID
+- `service_principal_password`: Generated secure password
+- `tenant_id`: Your Azure AD tenant ID
+- `key_vault_name`: Name of the Key Vault storing credentials
+
+## Files Structure
+
+- `main.tf`: Core infrastructure and service principal creation
+- `aks-cluster.tf`: AKS cluster configuration
+- `aks-kv.tf`: Key Vault and credential storage
+- `variables.tf`: Input variables (resource group and location only)
+
+## Security Benefits
+
+1. **No Hardcoded Credentials**: All secrets generated and stored automatically
+2. **Centralized Management**: All credentials in one Key Vault
+3. **Access Control**: Fine-grained permissions via Key Vault policies
+4. **Audit Trail**: Key Vault provides access logging
+5. **Automatic Rotation**: Easy credential rotation via Terraform
 
 ## Accessing Secrets in Kubernetes
 
@@ -81,7 +107,6 @@ The configuration automatically syncs Key Vault secrets to Kubernetes secrets:
 - `aks-cluster.tf`: AKS cluster configuration
 - `keyvault-integration.tf`: Key Vault CSI driver and integration
 - `variables.tf`: Input variables
-- `terraform.tfvars.example`: Example configuration file
 
 ## Security Benefits
 
