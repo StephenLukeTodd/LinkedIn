@@ -69,29 +69,3 @@ resource "azurerm_role_assignment" "storage_account_contributor" {
   principal_id         = azuread_service_principal.aks_sp.object_id
 }
 
-# =============================================================================
-# Storage Account Outputs
-# =============================================================================
-
-output "storage_account_name" {
-  description = "Name of the secure blob storage account"
-  value       = azurerm_storage_account.default.name
-}
-
-output "storage_account_id" {
-  description = "ID of the secure blob storage account"
-  value       = azurerm_storage_account.default.id
-}
-
-output "storage_account_primary_endpoint" {
-  description = "Primary blob endpoint"
-  value       = azurerm_storage_account.default.primary_blob_endpoint
-}
-
-output "storage_account_containers" {
-  description = "List of created blob containers"
-  value = [
-    azurerm_storage_container.data.name,
-    azurerm_storage_container.logs.name
-  ]
-}

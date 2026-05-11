@@ -14,3 +14,4 @@ variable "location" {
   default     = "westus"
 }
 
+

@@ -97,7 +97,7 @@ That's it! The configuration will automatically create everything needed.
 ### Storage Account Features
 - **Secure Access**: Public network access disabled
 - **Containers**: `data` and `logs` containers (private access)
-- **Data Protection**: Versioning, change feed, and 30-day retention
+- **Data Protection**: Simplified configuration without versioning or retention policies
 - **Encryption**: TLS 1.2 required, HTTPS only
 - **Authentication**: Microsoft Entra ID only (shared keys disabled)
 
@@ -166,9 +166,9 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 4. **Audit Trail**: Key Vault provides access logging
 5. **No Hardcoded Secrets**: Everything generated and stored dynamically
 6. **Storage Security**: Public network access disabled, private containers only
-7. **Data Protection**: Versioning, change feed, and retention policies enabled
-8. **Encryption Enforcement**: TLS 1.2 required, HTTPS-only access
-9. **Identity-Based Auth**: Microsoft Entra ID authentication (shared keys disabled)
+7. **Encryption Enforcement**: TLS 1.2 required, HTTPS-only access
+8. **Identity-Based Auth**: Microsoft Entra ID authentication (shared keys disabled)
+9. **Simplified Configuration**: Streamlined storage without complex data protection features
 
 ## AKS Cluster Specifications
 
@@ -187,8 +187,8 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 - **Authentication**: Microsoft Entra ID only (shared keys disabled)
 - **Encryption**: TLS 1.2 required, HTTPS-only access
 - **Containers**: `data` and `logs` (private access)
-- **Data Protection**: Versioning, change feed, 30-day retention
-- **RBAC**: Service principal has Storage Blob Data Contributor role
+- **Data Protection**: Simplified configuration without versioning or retention policies
+- **RBAC**: Service principal has multiple roles (Blob Data Contributor, Queue Data Contributor, Storage Account Contributor)
 - **Tags**: Environment: "Demo", Security: "high", Purpose: "blob-storage"
 
 ## Cleanup
