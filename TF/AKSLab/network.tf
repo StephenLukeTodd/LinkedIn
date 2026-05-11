@@ -31,4 +31,3 @@ resource "azurerm_subnet" "aks" {
     }
   }
 }
-
