@@ -1,6 +1,6 @@
-# Azure Kubernetes Service (AKS) with Automatic Service Principal & Key Vault Integration
+# Azure Kubernetes Service (AKS) with Automatic Service Principal, Key Vault & Secure Blob Storage
 
-This Terraform configuration deploys an AKS cluster with completely automated service principal creation and Azure Key Vault integration. No manual setup or external credentials required.
+This Terraform configuration deploys an AKS cluster with completely automated service principal creation, Azure Key Vault integration, and secure blob storage. No manual setup or external credentials required.
 
 ## Overview
 
@@ -9,23 +9,31 @@ The configuration automatically:
 - Generates a secure password for the service principal
 - Stores all credentials in Azure Key Vault
 - Deploys an AKS cluster using the generated service principal
-- Provides secure access to all stored credentials
+- Creates a secure blob storage account with enterprise-grade security
+- Provides secure access to all stored credentials and storage resources
 
 ## Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Azure AD      │    │  Azure Key Vault │    │      AKS        │
-│                 │    │                  │    │                 │
-│ ┌─────────────┐ │    │ ┌──────────────┐ │    │ ┌─────────────┐ │
-│ │Application  │ │───▶│ │ aks-sp-app-id│ │    │ │   Cluster   │ │
-│ │   & SP      │ │    │ │ aks-sp-app-  │ │◀───│ │   (uses SP) │ │
-│ │             │ │    │ │ password     │ │    │ │             │ │
-│ └─────────────┘ │    │ │ aks-sp-tenant│ │    │ └─────────────┘ │
-│                 │    │ │    -id        │ │    │                 │
-└─────────────────┘    │ └──────────────┘ │    └─────────────────┘
-                       │                  │
-                       └──────────────────┘
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Azure AD      │    │  Azure Key Vault │    │      AKS        │    │  Blob Storage   │
+│                 │    │                  │    │                 │    │                 │
+│ ┌─────────────┐ │    │ ┌──────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │
+│ │Application  │ │───▶│ │ aks-sp-app-id│ │    │ │   Cluster   │ │───▶│ │  Containers  │ │
+│ │   & SP      │ │    │ │ aks-sp-app-  │ │◀───│ │   (uses SP) │ │    │ │  data/logs   │ │
+│ │             │ │    │ │ password     │ │    │ │             │ │    │ │             │ │
+│ └─────────────┘ │    │ │ aks-sp-tenant│ │    │ └─────────────┘ │    │ └─────────────┘ │
+│                 │    │ │    -id        │ │    │                 │    │                 │
+└─────────────────┘    │ └──────────────┘ │    └─────────────────┘    └─────────────────┘
+                       │                  │    │                 │
+                       └──────────────────┘    │                 │
+                                              │                 │
+                         ┌──────────────────┐ │                 │
+                         │  RBAC Access     │ │                 │
+                         │  (Blob Data)     │ │                 │
+                         └──────────────────┘ │                 │
+                                              │                 │
+                                              └─────────────────┘
 ```
 
 ## Features
@@ -33,9 +41,11 @@ The configuration automatically:
 - ✅ **Zero Manual Setup**: Everything created automatically
 - ✅ **Secure Credential Generation**: Service principal with strong password
 - ✅ **Key Vault Storage**: All credentials stored securely
+- ✅ **Secure Blob Storage**: Enterprise-grade security with private access
 - ✅ **Random Naming**: Resources use random prefixes for uniqueness
-- ✅ **Proper Access Control**: Service principal has Key Vault permissions
-- ✅ **Clean Outputs**: All credentials available via Terraform outputs
+- ✅ **Proper Access Control**: Service principal has Key Vault and Storage permissions
+- ✅ **Clean Outputs**: All credentials and resource info available via Terraform outputs
+- ✅ **Data Protection**: Versioning, retention policies, and encryption enabled
 
 ## Prerequisites
 
@@ -77,11 +87,19 @@ That's it! The configuration will automatically create everything needed.
 - **Service Principal**: With automatically generated credentials
 - **Key Vault**: `{random-prefix}-kv` with stored secrets
 - **AKS Cluster**: `{random-prefix}-aks` with 1 node pool
+- **Storage Account**: `{random-prefix}-sa` with secure blob storage
 
 ### Key Vault Secrets
 - `aks-sp-app-id`: Service principal client ID
 - `aks-sp-app-password`: Service principal password
 - `aks-sp-tenant-id`: Azure AD tenant ID
+
+### Storage Account Features
+- **Secure Access**: Public network access disabled
+- **Containers**: `data` and `logs` containers (private access)
+- **Data Protection**: Versioning, change feed, and 30-day retention
+- **Encryption**: TLS 1.2 required, HTTPS only
+- **Authentication**: Microsoft Entra ID only (shared keys disabled)
 
 ## Accessing Credentials
 
@@ -117,6 +135,7 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 | `main.tf` | Core infrastructure, service principal creation, and outputs |
 | `aks-cluster.tf` | AKS cluster configuration using generated service principal |
 | `aks-kv.tf` | Key Vault creation and credential storage |
+| `storage-account.tf` | Secure blob storage account with enterprise security features |
 | `variables.tf` | Input variables (resource group name and location) |
 
 ## Variables
@@ -134,14 +153,22 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 | `service_principal_password` | Generated service principal password | ✅ |
 | `tenant_id` | Azure AD tenant ID | ❌ |
 | `key_vault_name` | Name of the Key Vault storing credentials | ❌ |
+| `storage_account_name` | Name of the secure blob storage account | ❌ |
+| `storage_account_id` | ID of the secure blob storage account | ❌ |
+| `storage_account_primary_endpoint` | Primary blob endpoint | ❌ |
+| `storage_account_containers` | List of created containers | ❌ |
 
 ## Security Features
 
 1. **Automatic Credential Generation**: No manual password creation
 2. **Secure Storage**: All secrets stored in Azure Key Vault
-3. **Access Control**: Service principal has appropriate Key Vault permissions
+3. **Access Control**: Service principal has appropriate Key Vault and Storage permissions
 4. **Audit Trail**: Key Vault provides access logging
 5. **No Hardcoded Secrets**: Everything generated and stored dynamically
+6. **Storage Security**: Public network access disabled, private containers only
+7. **Data Protection**: Versioning, change feed, and retention policies enabled
+8. **Encryption Enforcement**: TLS 1.2 required, HTTPS-only access
+9. **Identity-Based Auth**: Microsoft Entra ID authentication (shared keys disabled)
 
 ## AKS Cluster Specifications
 
@@ -152,6 +179,17 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 - **Authentication**: Service principal with Key Vault-stored credentials
 - **RBAC**: Enabled
 - **Tags**: Environment: "Demo"
+
+## Storage Account Specifications
+
+- **Account Type**: StorageV2 (Standard LRS)
+- **Access**: Public network disabled, private containers
+- **Authentication**: Microsoft Entra ID only (shared keys disabled)
+- **Encryption**: TLS 1.2 required, HTTPS-only access
+- **Containers**: `data` and `logs` (private access)
+- **Data Protection**: Versioning, change feed, 30-day retention
+- **RBAC**: Service principal has Storage Blob Data Contributor role
+- **Tags**: Environment: "Demo", Security: "high", Purpose: "blob-storage"
 
 ## Cleanup
 
