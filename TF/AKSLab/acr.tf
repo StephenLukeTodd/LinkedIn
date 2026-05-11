@@ -11,7 +11,7 @@ resource "azurerm_container_registry" "default" {
     default_action = "Deny"
     ip_rule {
       action   = "Allow"
-      ip_range = "${random_integer.vnet_octet.result}.1.0/24" # AKS subnet
+      ip_range = "${random_integer.vnet_octet.result}.1.0.0/24" # AKS subnet
     }
   }
 
