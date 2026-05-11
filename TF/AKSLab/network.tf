@@ -21,7 +21,7 @@ resource "azurerm_subnet" "aks" {
   name                 = "aks-subnet"
   resource_group_name  = azurerm_resource_group.default.name
   virtual_network_name = azurerm_virtual_network.default.name
-  address_prefixes     = ["${random_integer.vnet_octet.result}.1.0.0/24"]
+  address_prefixes     = ["${random_integer.vnet_octet.result}.0.1.0/24"]
 
   delegation {
     name = "aks-delegation"

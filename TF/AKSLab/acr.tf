@@ -6,14 +6,14 @@ resource "azurerm_container_registry" "default" {
   sku                 = "Standard"
   admin_enabled       = true
 
-  # Network Configuration - Private access with AKS subnet whitelisted
-  network_rule_set {
-    default_action = "Deny"
-    ip_rule {
-      action   = "Allow"
-      ip_range = "${random_integer.vnet_octet.result}.1.0.0/24" # AKS subnet
-    }
-  }
+  # Network Configuration - Standard SKU doesn't support network rules
+  # network_rule_set {
+  #   default_action = "Deny"
+  #   ip_rule {
+  #     action   = "Allow"
+  #     ip_range = "${random_integer.vnet_octet.result}.1.0.0/24" # AKS subnet
+  #   }
+  # }
 
   # Data Protection Configuration - Standard SKU doesn't support retention policy
   # retention_policy {
