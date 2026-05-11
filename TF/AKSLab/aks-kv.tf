@@ -13,6 +13,20 @@ resource "azurerm_key_vault" "default" {
 
   access_policy {
     tenant_id = data.azuread_client_config.current.tenant_id
+    object_id = data.azuread_client_config.current.object_id
+
+    secret_permissions = [
+      "Get",
+      "List",
+      "Set",
+      "Delete",
+      "Recover",
+      "Purge"
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azuread_client_config.current.tenant_id
     object_id = azuread_service_principal.aks_sp.object_id
 
     secret_permissions = [

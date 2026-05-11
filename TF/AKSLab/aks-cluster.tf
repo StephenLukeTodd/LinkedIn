@@ -4,6 +4,7 @@ resource "azurerm_kubernetes_cluster" "default" {
   resource_group_name = azurerm_resource_group.default.name
   dns_prefix          = "${random_pet.prefix.id}-k8s"
   kubernetes_version  = "1.34"
+  oidc_issuer_enabled = true
 
   default_node_pool {
     name            = "default"
