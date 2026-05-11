@@ -15,16 +15,16 @@ resource "azurerm_container_registry" "default" {
     }
   }
 
-  # Data Protection Configuration
-  retention_policy {
-    days    = 14
-    enabled = true
-  }
+  # Data Protection Configuration - Standard SKU doesn't support retention policy
+  # retention_policy {
+  #   days    = 14
+  #   enabled = true
+  # }
 
-  # Trust Policy for signed images
-  trust_policy {
-    enabled = true
-  }
+  # Trust Policy for signed images - Standard SKU doesn't support trust policy
+  # trust_policy {
+  #   enabled = true
+  # }
 
   tags = {
     environment = "Demo"
