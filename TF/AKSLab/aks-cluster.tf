@@ -12,7 +12,9 @@ resource "azurerm_kubernetes_cluster" "default" {
     vm_size         = "Standard_D2s_v3"
     os_disk_size_gb = 30
   }
-
+  storage_profile {
+    blob_driver_enabled = true # Required for Blob storage PVs
+  }
   service_principal {
     client_id     = azuread_service_principal.aks_sp.client_id
     client_secret = azuread_service_principal_password.aks_sp.value
