@@ -1,4 +1,7 @@
-# Configure the Azure provider
+# =============================================================================
+# Azure Kubernetes Service (AKS) with Key Vault Integration
+# =============================================================================
+
 terraform {
   required_providers {
     azurerm = {
@@ -9,6 +12,18 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.1.0"
     }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
   }
 
   required_version = ">= 1.1.0"
@@ -17,6 +32,10 @@ terraform {
 provider "azurerm" {
   features {}
 }
+
+# =============================================================================
+# Core Resources
+# =============================================================================
 
 resource "random_pet" "prefix" {
   length = 2
@@ -27,4 +46,3 @@ resource "azurerm_resource_group" "default" {
   location = var.location
 }
 
-# Using existing service principal instead of creating new one
