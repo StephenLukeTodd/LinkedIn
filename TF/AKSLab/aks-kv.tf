@@ -66,3 +66,21 @@ resource "azurerm_key_vault_secret" "storage_account_endpoint" {
   value        = azurerm_storage_account.default.primary_blob_endpoint
   key_vault_id = azurerm_key_vault.default.id
 }
+
+resource "azurerm_key_vault_secret" "acr_login_server" {
+  name         = "acr-login-server"
+  value        = azurerm_container_registry.default.login_server
+  key_vault_id = azurerm_key_vault.default.id
+}
+
+resource "azurerm_key_vault_secret" "acr_username" {
+  name         = "acr-username"
+  value        = azurerm_container_registry.default.admin_username
+  key_vault_id = azurerm_key_vault.default.id
+}
+
+resource "azurerm_key_vault_secret" "acr_password" {
+  name         = "acr-password"
+  value        = azurerm_container_registry.default.admin_password
+  key_vault_id = azurerm_key_vault.default.id
+}

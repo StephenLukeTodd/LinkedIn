@@ -128,3 +128,18 @@ output "storage_account_containers" {
     azurerm_storage_container.logs.name
   ]
 }
+
+output "acr_name" {
+  description = "Name of the Azure Container Registry"
+  value       = azurerm_container_registry.default.name
+}
+
+output "acr_login_server" {
+  description = "Login server URL for the Azure Container Registry"
+  value       = azurerm_container_registry.default.login_server
+}
+
+output "acr_id" {
+  description = "ID of the Azure Container Registry"
+  value       = azurerm_container_registry.default.id
+}
