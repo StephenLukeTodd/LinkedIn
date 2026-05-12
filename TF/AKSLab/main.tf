@@ -41,6 +41,9 @@ provider "azuread" {
   # Uses current Azure CLI credentials
 }
 
+# Get current Azure client configuration
+data "azurerm_client_config" "current" {}
+
 # Get current Azure subscription and tenant info
 data "azurerm_subscription" "current" {}
 

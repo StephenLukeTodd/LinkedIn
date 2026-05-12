@@ -1,18 +1,17 @@
-# Azure Kubernetes Service (AKS) Lab with Secure Storage Integration
+# Azure Kubernetes Service (AKS) Lab with Secure Video Player Application
 
-This Terraform configuration deploys a complete AKS lab environment with automated service principal creation, Azure Key Vault integration, secure blob storage, and network whitelisting for storage access.
+This Terraform configuration deploys a complete AKS lab environment with a secure video player application, Azure AD authentication, dynamic IP configuration, and enterprise-grade security features.
 
 ## Overview
 
 The configuration automatically:
 - Creates a new Azure AD application and service principal
-- Generates a secure password for the service principal
-- Stores all credentials in Azure Key Vault
-- Deploys an AKS cluster using the generated service principal
-- Creates a secure blob storage account with enterprise-grade security
-- Sets up custom Virtual Network with dynamic IP allocation
-- Whitelists AKS cluster subnet for secure storage access
-- Provides secure access to all stored credentials and storage resources
+- Generates secure credentials and stores them in Azure Key Vault
+- Deploys an AKS cluster with custom networking
+- Creates secure blob storage with network whitelisting
+- Builds and deploys a secure video player application with Azure AD authentication
+- Configures dynamic IP addresses for public access
+- Implements proper secrets management and security best practices
 
 ## Architecture
 
@@ -21,45 +20,65 @@ The configuration automatically:
 │   Azure AD      │    │  Azure Key Vault │    │      AKS        │    │  Blob Storage   │
 │                 │    │                  │    │                 │    │                 │
 │ ┌─────────────┐ │    │ ┌──────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │
-│ │Application  │ │───▶│ │ aks-sp-app-id│ │    │ │   Cluster   │ │───▶│ │  Containers  │ │
-│ │   & SP      │ │    │ │ aks-sp-app-  │ │◀───│ │   (uses SP) │ │    │ │  data/logs   │ │
-│ │             │ │    │ │ password     │ │    │ │             │ │    │ │             │ │
-│ └─────────────┘ │    │ │ aks-sp-tenant│ │    │ └─────────────┘ │    │ └─────────────┘ │
-│                 │    │ │    -id        │ │    │                 │    │                 │
-└─────────────────┘    │ └──────────────┘ │    └─────────────────┘    └─────────────────┘
-                       │                  │    │                 │
-                       └──────────────────┘    │                 │
-                                              │                 │
-                         ┌──────────────────┐ │                 │
-                         │  RBAC Access     │ │                 │
-                         │  (Blob Data)     │ │                 │
-                         └──────────────────┘ │                 │
-                                              │                 │
-                                              └─────────────────┘
+│ │Video Player │ │───▶│ │ App Secrets  │ │    │ │ Video Player│ │───▶│ │  Video Data  │ │
+│ │   App       │ │    │ │ Storage Creds│ │◀───│ │  Container  │ │    │ │  Containers  │ │
+│ │             │ │    │ │ AD Credentials│ │    │ │             │ │    │ │             │ │
+│ └─────────────┘ │    │ └──────────────┘ │    │ └─────────────┘ │    │ └─────────────┘ │
+│                 │    │                  │    │                 │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘    └─────────────────┘
+         │                                               │
+         │                                               │
+         ▼                                               ▼
+┌─────────────────┐                         ┌─────────────────┐
+│  Public Access  │                         │  Container      │
+│  (Dynamic IP)   │                         │  Registry       │
+│                 │                         │                 │
+│ ┌─────────────┐ │                         │ ┌─────────────┐ │
+│ │ LoadBalancer│ │◀────────────────────────│ │Secure Images │ │
+│ │   Service   │ │                         │ │             │ │
+│ └─────────────┘ │                         │ └─────────────┘ │
+└─────────────────┘                         └─────────────────┘
 ```
 
 ## Features
 
+### Infrastructure Features
 - ✅ **Zero Manual Setup**: Everything created automatically
-- ✅ **Secure Credential Generation**: Service principal with strong password
+- ✅ **Dynamic IP Configuration**: Static public IP with dynamic DNS for consistent access
+- ✅ **Secure Credential Generation**: Service principal with strong passwords
 - ✅ **Key Vault Storage**: All credentials stored securely
-- ✅ **Secure Blob Storage**: Enterprise-grade security with private access
 - ✅ **Network Integration**: Custom VNet with dynamic IP allocation
 - ✅ **Storage Whitelisting**: AKS subnet specifically whitelisted for storage access
 - ✅ **Random Naming**: Resources use random prefixes for uniqueness
-- ✅ **Proper Access Control**: Service principal has Key Vault and Storage permissions
-- ✅ **Clean Outputs**: All credentials and resource info available via Terraform outputs
+- ✅ **Proper Access Control**: Service principal has appropriate permissions
+
+### Application Features
+- ✅ **Azure AD Authentication**: Enterprise-grade single sign-on
+- ✅ **Secure Video Streaming**: Protected video access with SAS URLs
+- ✅ **Modern UI**: Professional interface with Bootstrap styling
+- ✅ **Session Management**: Secure encrypted sessions with timeout
+- ✅ **Container Security**: Non-root user, health checks, minimal attack surface
+- ✅ **API Security**: All endpoints protected behind authentication
+
+### Security Features
+- ✅ **Enterprise Authentication**: Azure AD integration with MSAL
+- ✅ **Network Security**: Storage access restricted to AKS subnet only
+- ✅ **Secrets Management**: Kubernetes secrets for sensitive data
 - ✅ **Data Protection**: Versioning, retention policies, and encryption enabled
+- ✅ **Audit Trail**: Key Vault provides access logging
+- ✅ **No Hardcoded Secrets**: Everything generated and stored dynamically
 
 ## Prerequisites
 
 - Azure CLI installed and authenticated
 - Terraform installed
+- Docker installed (for building container images)
 - Appropriate Azure permissions to create:
   - Resource groups
   - AKS clusters
   - Azure AD applications and service principals
   - Key Vaults
+  - Container registries
 
 ## Quick Start
 
@@ -81,7 +100,38 @@ terraform plan
 terraform apply
 ```
 
-That's it! The configuration will automatically create everything needed.
+### 4. Build and Deploy the Video Player
+
+```bash
+# Navigate to the video app directory
+cd video-app
+
+# Build the secure Docker image
+docker build -f Dockerfile.secure --platform linux/amd64 -t video-player-secure .
+
+# Tag and push to ACR (use outputs from Terraform)
+ACR_LOGIN_SERVER=$(terraform output -raw acr_login_server)
+docker tag video-player-secure $ACR_LOGIN_SERVER/video-player:secure
+docker push $ACR_LOGIN_SERVER/video-player:secure
+
+# Deploy to Kubernetes
+kubectl apply -f k8s-deployment-generated.yaml
+kubectl apply -f secrets-generated.yaml
+```
+
+### 5. Access the Application
+
+Get the public IP or FQDN from Terraform outputs:
+
+```bash
+# Get the public IP
+terraform output video_player_public_ip
+
+# Get the FQDN
+terraform output video_player_fqdn
+```
+
+Visit `http://<PUBLIC_IP>` or `http://<FQDN>` to access the secure video player.
 
 ## What Gets Created
 
@@ -89,16 +139,31 @@ That's it! The configuration will automatically create everything needed.
 - **Resource Group**: `MooRG` (configurable)
 - **Virtual Network**: `{random-prefix}-vnet` with dynamic IP allocation
 - **AKS Subnet**: `aks-subnet` with proper delegation for AKS
+- **Gateway Subnet**: `gateway-subnet` for Application Gateway (optional)
 - **Azure AD Application**: `{random-prefix}-aks-sp`
 - **Service Principal**: With automatically generated credentials
 - **Key Vault**: `{random-prefix}-kv` with stored secrets
 - **AKS Cluster**: `{random-prefix}-aks` with custom networking
 - **Storage Account**: `{random-prefix}-sa` with network whitelisting
+- **Container Registry**: `{random-prefix}-acr` for secure image storage
+- **Public IP**: Static IP for LoadBalancer with dynamic DNS
+
+### Application Components
+- **Video Player Flask App**: Secure web application with Azure AD authentication
+- **Docker Container**: Optimized multi-stage build with security best practices
+- **Kubernetes Deployment**: Auto-scaling deployment with health checks
+- **LoadBalancer Service**: Public access with static IP
+- **Kubernetes Secrets**: Secure storage for credentials
 
 ### Key Vault Secrets
 - `aks-sp-app-id`: Service principal client ID
 - `aks-sp-app-password`: Service principal password
 - `aks-sp-tenant-id`: Azure AD tenant ID
+- `storage-account-name`: Storage account name
+- `storage-account-endpoint`: Storage account endpoint
+- `acr-login-server`: Container registry login server
+- `acr-username`: Container registry username
+- `acr-password`: Container registry password
 
 ### Storage Account Features
 - **Secure Access**: Network rules deny all traffic except AKS subnet
@@ -107,6 +172,33 @@ That's it! The configuration will automatically create everything needed.
 - **Data Protection**: Simplified configuration without versioning or retention policies
 - **Encryption**: TLS 1.2 required, HTTPS only
 - **Authentication**: Microsoft Entra ID only (shared keys disabled)
+
+## Video Player Application
+
+### Features
+- **Azure AD Authentication**: Secure login with Microsoft accounts
+- **Video Streaming**: Random video selection from Azure Blob Storage
+- **SAS Token Security**: Time-limited secure access to video files
+- **Responsive UI**: Modern interface with Bootstrap styling
+- **User Dashboard**: Display authenticated user information
+- **Secure Logout**: Proper session termination
+
+### API Endpoints
+- `GET /`: Main page (requires authentication)
+- `GET /login`: Login page
+- `GET /logout`: Logout endpoint
+- `GET /getAToken`: Azure AD callback endpoint
+- `GET /api/random-video`: Get random video with SAS URL
+- `GET /api/videos`: List all available videos
+- `GET /health`: Health check endpoint
+
+### Environment Variables
+- `AZURE_STORAGE_ACCOUNT_NAME`: Storage account name
+- `AZURE_STORAGE_CONTAINER_NAME`: Container name (default: data)
+- `AZURE_STORAGE_CONNECTION_STRING`: Storage connection string
+- `AZURE_AD_CLIENT_ID`: Azure AD application client ID
+- `AZURE_AD_CLIENT_SECRET`: Azure AD application client secret
+- `AZURE_AD_TENANT_ID`: Azure AD tenant ID
 
 ## Accessing Credentials
 
@@ -156,7 +248,21 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 | `aks-cluster.tf` | AKS cluster configuration with custom networking |
 | `aks-kv.tf` | Key Vault creation and credential storage |
 | `storage-account.tf` | Secure blob storage account with network whitelisting |
+| `acr.tf` | Azure Container Registry for secure image storage |
+| `azure-ad.tf` | Azure AD application for video player authentication |
+| `public-ip.tf` | Public IP configuration for LoadBalancer service |
+| `k8s-deployment.tf` | Kubernetes deployment template generation |
 | `variables.tf` | Input variables (resource group name and location) |
+
+### Video App Files
+| File | Purpose |
+|------|---------|
+| `video-app/app_secure.py` | Secure Flask application with Azure AD authentication |
+| `video-app/Dockerfile.secure` | Optimized Docker build for production |
+| `video-app/k8s-deployment-dynamic.yaml` | Kubernetes deployment template |
+| `video-app/secrets.yaml` | Kubernetes secrets template |
+| `video-app/requirements.txt` | Python dependencies |
+| `video-app/templates/` | HTML templates for the web interface |
 
 ## Variables
 
@@ -164,6 +270,7 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 |----------|---------|-------------|
 | `resource_group_name` | `MooRG` | Name of the Azure resource group |
 | `location` | `westus` | Azure region for deployment |
+| `enable_https` | `false` | Enable HTTPS with Application Gateway |
 
 ## Outputs
 
@@ -177,9 +284,17 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 | `storage_account_id` | ID of the secure blob storage account | ❌ |
 | `storage_account_primary_endpoint` | Primary blob endpoint | ❌ |
 | `storage_account_containers` | List of created containers | ❌ |
+| `acr_name` | Name of the Azure Container Registry | ❌ |
+| `acr_login_server` | Container registry login server | ❌ |
+| `video_player_public_ip` | Public IP address for video player | ❌ |
+| `video_player_fqdn` | Fully qualified domain name for video player | ❌ |
+| `azure_ad_client_id` | Azure AD application client ID | ❌ |
+| `azure_ad_client_secret` | Azure AD application client secret | ✅ |
+| `azure_ad_tenant_id` | Azure AD tenant ID | ❌ |
 
-## Security Features
+## Security Best Practices
 
+### Infrastructure Security
 1. **Automatic Credential Generation**: No manual password creation
 2. **Secure Storage**: All secrets stored in Azure Key Vault
 3. **Network Isolation**: Storage account access restricted to AKS subnet only
@@ -187,10 +302,14 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 5. **Access Control**: Service principal has appropriate Key Vault and Storage permissions
 6. **Audit Trail**: Key Vault provides access logging
 7. **No Hardcoded Secrets**: Everything generated and stored dynamically
-8. **Storage Security**: Network rules with default deny, explicit AKS whitelist
-9. **Encryption Enforcement**: TLS 1.2 required, HTTPS-only access
-10. **Identity-Based Auth**: Microsoft Entra ID authentication (shared keys disabled)
-11. **Simplified Configuration**: Streamlined storage without complex data protection features
+
+### Application Security
+1. **Azure AD Authentication**: Enterprise-grade single sign-on
+2. **Session Management**: Secure encrypted sessions with timeout
+3. **SAS Token Security**: Time-limited secure access to video files
+4. **Container Security**: Non-root user, health checks, minimal attack surface
+5. **API Security**: All endpoints protected behind authentication
+6. **Secrets Management**: Kubernetes secrets for sensitive data
 
 ## AKS Cluster Specifications
 
@@ -235,11 +354,66 @@ Ensure your Azure account has permissions for:
 - Microsoft.ContainerService/*/write
 - Microsoft.KeyVault/*/write
 - Microsoft.Directory/*/write (for service principal creation)
+- Microsoft.ContainerRegistry/*/write
 
 ### Common Issues
 - **Service Principal Creation**: Requires Azure AD administrator permissions
 - **Key Vault Access**: Ensure proper access policies are applied
 - **AKS Deployment**: Verify quota and VM size availability in your region
+- **Container Registry**: Ensure proper permissions for image push/pull
+- **Azure AD Authentication**: Verify redirect URI matches the public IP/FQDN
+
+### Application Issues
+- **Authentication Failures**: Check Azure AD app registration and redirect URI
+- **Video Access**: Verify storage account permissions and SAS token generation
+- **Container Issues**: Check pod logs with `kubectl logs <pod-name>`
+- **Network Access**: Verify LoadBalancer service and public IP configuration
+
+## Development
+
+### Local Development
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set environment variables
+cp .env.example .env
+# Edit .env with your Azure Storage credentials
+
+# Run locally
+python app_secure.py
+```
+
+### Building Container Images
+```bash
+# Build for local testing
+docker build -f Dockerfile.secure -t video-player-secure .
+
+# Build for AKS deployment
+docker build -f Dockerfile.secure --platform linux/amd64 -t video-player-secure .
+```
+
+### Kubernetes Debugging
+```bash
+# Check pod status
+kubectl get pods
+
+# View pod logs
+kubectl logs <pod-name>
+
+# Describe pod for detailed information
+kubectl describe pod <pod-name>
+
+# Check service status
+kubectl get services
+
+# Port forward for local testing
+kubectl port-forward service/video-player-service 5000:80
+```
 
 ## Provider Versions
 
