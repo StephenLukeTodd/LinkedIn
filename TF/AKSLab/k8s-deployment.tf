@@ -12,7 +12,7 @@ resource "local_file" "k8s_deployment" {
 }
 
 # Generate Kubernetes secrets file
-resource "local_file" "k8s_secrets" {
+resource "local_sensitive_file" "k8s_secrets" {
   content = templatefile("${path.module}/video-app/secrets.yaml", {
     STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.default.name};AccountKey=${azurerm_storage_account.default.primary_access_key};EndpointSuffix=core.windows.net"
     AZURE_AD_CLIENT_ID       = azuread_application.video_player.client_id
@@ -20,7 +20,6 @@ resource "local_file" "k8s_secrets" {
     AZURE_AD_TENANT_ID       = data.azurerm_client_config.current.tenant_id
   })
   filename = "${path.module}/video-app/secrets-generated.yaml"
-  sensitive_content = true
 }
 
 # Output the generated file paths
@@ -31,5 +30,5 @@ output "k8s_deployment_file" {
 
 output "k8s_secrets_file" {
   description = "Path to generated Kubernetes secrets file"
-  value       = local_file.k8s_secrets.filename
+  value       = local_sensitive_file.k8s_secrets.filename
 }
