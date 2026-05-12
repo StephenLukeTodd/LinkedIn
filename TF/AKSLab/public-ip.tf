@@ -6,7 +6,6 @@ resource "azurerm_public_ip" "video_player_lb" {
   allocation_method   = "Static"
   sku                 = "Standard"
   domain_name_label   = "video-player-${random_pet.prefix.id}"
-  zones               = ["1", "2", "3"] # Zone-redundant for high availability
   
   tags = {
     environment = "Demo"
@@ -23,7 +22,6 @@ resource "azurerm_public_ip" "app_gateway_ip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   domain_name_label   = "video-player-gateway-${random_pet.prefix.id}"
-  zones               = ["1", "2", "3"] # Zone-redundant for high availability
   
   tags = {
     environment = "Demo"
