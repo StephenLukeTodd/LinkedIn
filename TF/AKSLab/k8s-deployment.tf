@@ -1,6 +1,6 @@
 # Generate Kubernetes deployment file with dynamic values
 resource "local_file" "k8s_deployment" {
-  content = templatefile("${var.video_app_path}/k8s-deployment-dynamic.yaml", {
+  content = templatefile("${path.module}/${var.video_app_path}/k8s-deployment-dynamic.yaml", {
     ACR_LOGIN_SERVER         = azurerm_container_registry.default.login_server
     STORAGE_ACCOUNT_NAME     = azurerm_storage_account.default.name
     STORAGE_ACCOUNT_ENDPOINT = azurerm_storage_account.default.primary_blob_endpoint
@@ -14,7 +14,7 @@ resource "local_file" "k8s_deployment" {
 
 # Generate Kubernetes secrets file
 resource "local_sensitive_file" "k8s_secrets" {
-  content = templatefile("${var.video_app_path}/secrets.yaml", {
+  content = templatefile("${path.module}/${var.video_app_path}/secrets.yaml", {
     STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=${azurerm_storage_account.default.name};AccountKey=${azurerm_storage_account.default.primary_access_key};EndpointSuffix=core.windows.net"
     AZURE_AD_CLIENT_ID        = azuread_application.video_player.client_id
     AZURE_AD_CLIENT_SECRET    = azuread_service_principal_password.video_player.value
