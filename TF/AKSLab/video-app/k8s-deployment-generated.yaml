@@ -16,16 +16,16 @@ spec:
     spec:
       containers:
       - name: video-player
-        image: ${ACR_LOGIN_SERVER}/video-player:secure
+        image: enablingmothacr.azurecr.io/video-player:secure
         ports:
         - containerPort: 5000
         env:
         - name: AZURE_STORAGE_ACCOUNT_NAME
-          value: "${STORAGE_ACCOUNT_NAME}"
+          value: "enablingmothsa"
         - name: AZURE_STORAGE_CONTAINER_NAME
           value: "data"
         - name: AZURE_STORAGE_ACCOUNT_ENDPOINT
-          value: "${STORAGE_ACCOUNT_ENDPOINT}"
+          value: "https://enablingmothsa.blob.core.windows.net/"
         - name: AZURE_STORAGE_CONNECTION_STRING
           valueFrom:
             secretKeyRef:
@@ -47,7 +47,7 @@ spec:
               name: azure-ad-credentials
               key: tenant-id
         - name: VIDEO_SAS_MINUTES
-          value: "${VIDEO_SAS_MINUTES}"
+          value: "60"
         resources:
           requests:
             memory: "128Mi"
@@ -61,8 +61,8 @@ kind: Service
 metadata:
   name: video-player-service
   annotations:
-    service.beta.kubernetes.io/azure-load-balancer-resource-group: "${RESOURCE_GROUP_NAME}"
-    service.beta.kubernetes.io/azure-dns-label-name: "${DNS_LABEL}"
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: "MooRG"
+    service.beta.kubernetes.io/azure-dns-label-name: "video-player-enabling-moth"
 spec:
   type: LoadBalancer
   selector:

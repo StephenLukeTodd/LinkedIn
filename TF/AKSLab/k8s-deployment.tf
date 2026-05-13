@@ -6,7 +6,6 @@ resource "local_file" "k8s_deployment" {
     STORAGE_ACCOUNT_ENDPOINT = azurerm_storage_account.default.primary_blob_endpoint
     RESOURCE_GROUP_NAME      = azurerm_resource_group.default.name
     DNS_LABEL                = "video-player-${random_pet.prefix.id}"
-    LOAD_BALANCER_IP         = azurerm_public_ip.video_player_lb.ip_address
     VIDEO_SAS_MINUTES        = "60"
   })
   filename = "${path.module}/video-app/k8s-deployment-generated.yaml"
