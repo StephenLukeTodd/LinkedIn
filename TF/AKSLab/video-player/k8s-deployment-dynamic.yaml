@@ -50,8 +50,8 @@ spec:
           value: "${VIDEO_SAS_MINUTES}"
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
+            memory: "512Mi"
+            cpu: "250m"
           limits:
             memory: "512Mi"
             cpu: "500m"
