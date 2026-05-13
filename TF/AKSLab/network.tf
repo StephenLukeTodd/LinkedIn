@@ -1,7 +1,7 @@
-# Generate random IP address space for VNet
+# Generate random IP address space for VNet (using valid private IP ranges)
 resource "random_integer" "vnet_octet" {
   min = 10
-  max = 254
+  max = 172
 }
 
 # Virtual Network for AKS cluster

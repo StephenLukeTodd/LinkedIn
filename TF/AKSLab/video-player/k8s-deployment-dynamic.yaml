@@ -24,6 +24,8 @@ spec:
           value: "${STORAGE_ACCOUNT_NAME}"
         - name: AZURE_STORAGE_CONTAINER_NAME
           value: "data"
+        - name: AZURE_STORAGE_ACCOUNT_ENDPOINT
+          value: "${STORAGE_ACCOUNT_ENDPOINT}"
         - name: AZURE_STORAGE_CONNECTION_STRING
           valueFrom:
             secretKeyRef:
@@ -44,8 +46,8 @@ spec:
             secretKeyRef:
               name: azure-ad-credentials
               key: tenant-id
-        - name: AZURE_STORAGE_ACCOUNT_ENDPOINT
-          value: "${STORAGE_ACCOUNT_ENDPOINT}"
+        - name: VIDEO_SAS_MINUTES
+          value: "${VIDEO_SAS_MINUTES}"
         resources:
           requests:
             memory: "128Mi"

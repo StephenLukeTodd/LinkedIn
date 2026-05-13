@@ -15,3 +15,10 @@ variable "location" {
 }
 
 
+variable "video_app_path" {
+  description = "Path to the video player app source (used for Kubernetes template generation)"
+  type        = string
+  default     = "${path.module}/video-player"
+}
+
+
