@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Random Video Player</title>
+
+    <link href="https://vjs.zencdn.net/8.23.3/video-js.css" rel="stylesheet" />
+
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: #0b1220;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .player-wrap {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .meta {
+        font-size: 13px;
+        color: #cbd5e1;
+        word-break: break-all;
+      }
+      .error {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fecaca;
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>Random Video Player (Video.js)</h1>
+      <button id="btn-random" type="button">Play Random</button>
+    </header>
+
+    <main>
+      <div class="player-wrap">
+        <video
+          id="player"
+          class="video-js vjs-big-play-centered"
+          controls
+          preload="auto"
+          width="900"
+          height="506"
+          data-setup="{}"
+        ></video>
+
+        <div class="row">
+          <div class="meta" id="meta">Click “Play Random” to start.</div>
+        </div>
+
+        <div class="error" id="error"></div>
+      </div>
+    </main>
+
+    <script src="https://vjs.zencdn.net/8.23.3/video.min.js"></script>
+    <script>
+      const btn = document.getElementById('btn-random');
+      const meta = document.getElementById('meta');
+      const errorEl = document.getElementById('error');
+
+      const player = videojs('player', {
+        fluid: true,
+        responsive: true,
+        controlBar: {
+          pictureInPictureToggle: false
+        }
+      });
+
+      function setError(msg) {
+        if (!msg) {
+          errorEl.style.display = 'none';
+          errorEl.textContent = '';
+          return;
+        }
+        errorEl.style.display = 'block';
+        errorEl.textContent = msg;
+      }
+
+      async function playRandom() {
+        btn.disabled = true;
+        setError(null);
+        meta.textContent = 'Loading random video...';
+
+        try {
+          const resp = await fetch('/api/random', { cache: 'no-store' });
+          const data = await resp.json();
+
+          if (!resp.ok) {
+            throw new Error(data && data.error ? data.error : 'Failed to fetch random video');
+          }
+
+          meta.textContent = data.name;
+
+          player.src({
+            src: data.url,
+            type: 'video/mp4'
+          });
+
+          await player.play();
+        } catch (e) {
+          setError(e.message || String(e));
+          meta.textContent = 'Unable to load video.';
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      btn.addEventListener('click', playRandom);
+
+      player.on('ended', () => {
+        playRandom();
+      });
+    </script>
+  </body>
+</html>

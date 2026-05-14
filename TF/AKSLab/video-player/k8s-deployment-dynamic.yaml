@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-player
+  labels:
+    app: video-player
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: video-player
+  template:
+    metadata:
+      labels:
+        app: video-player
+    spec:
+      containers:
+      - name: video-player
+        image: ${ACR_LOGIN_SERVER}/video-player:secure
+        ports:
+        - containerPort: 5000
+        env:
+        - name: AZURE_STORAGE_ACCOUNT_NAME
+          value: "${STORAGE_ACCOUNT_NAME}"
+        - name: AZURE_STORAGE_CONTAINER_NAME
+          value: "data"
+        - name: AZURE_STORAGE_ACCOUNT_ENDPOINT
+          value: "${STORAGE_ACCOUNT_ENDPOINT}"
+        - name: AZURE_STORAGE_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: storage-connection-string
+              key: connection-string
+        - name: AZURE_AD_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-ad-credentials
+              key: client-id
+        - name: AZURE_AD_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: azure-ad-credentials
+              key: client-secret
+        - name: AZURE_AD_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-ad-credentials
+              key: tenant-id
+        - name: VIDEO_SAS_MINUTES
+          value: "${VIDEO_SAS_MINUTES}"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-player-service
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: "${RESOURCE_GROUP_NAME}"
+    service.beta.kubernetes.io/azure-dns-label-name: "${DNS_LABEL}"
+spec:
+  type: LoadBalancer
+  selector:
+    app: video-player
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  sessionAffinity: None
