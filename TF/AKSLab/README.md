@@ -105,16 +105,16 @@ terraform apply
 ### 4. Build and Deploy the Project Cringe Machine
 
 ```bash
-# Navigate to the video app directory
-cd video-app
+# Navigate to the app directory
+cd video-player
 
 # Build the secure Docker image
-docker build -f Dockerfile.secure --platform linux/amd64 -t project-cringe-machine-secure .
+docker build --platform linux/amd64 -t project-cringe-machine-secure .
 
 # Tag and push to ACR (use outputs from Terraform)
 ACR_LOGIN_SERVER=$(terraform output -raw acr_login_server)
-docker tag project-cringe-machine-secure $ACR_LOGIN_SERVER/project-cringe-machine:secure
-docker push $ACR_LOGIN_SERVER/project-cringe-machine:secure
+docker tag project-cringe-machine-secure $ACR_LOGIN_SERVER/video-player:secure
+docker push $ACR_LOGIN_SERVER/video-player:secure
 
 # Deploy to Kubernetes
 kubectl apply -f k8s-deployment-generated.yaml
@@ -127,10 +127,10 @@ Get the public IP or FQDN from Terraform outputs:
 
 ```bash
 # Get the public IP
-terraform output project_cringe_machine_public_ip
+terraform output video_player_public_ip
 
 # Get the FQDN
-terraform output project_cringe_machine_fqdn
+terraform output video_player_fqdn
 ```
 
 Visit `http://<PUBLIC_IP>` or `http://<FQDN>` to access the Project Cringe Machine.
@@ -256,15 +256,15 @@ az keyvault secret show --vault-name $KV_NAME --name aks-sp-tenant-id
 | `k8s-deployment.tf` | Kubernetes deployment template generation |
 | `variables.tf` | Input variables (resource group name and location) |
 
-### Video App Files
+### Video Player App Files
 | File | Purpose |
 |------|---------|
-| `video-app/app_secure.py` | Secure Flask application with Azure AD authentication |
-| `video-app/Dockerfile.secure` | Optimized Docker build for production |
-| `video-app/k8s-deployment-dynamic.yaml` | Kubernetes deployment template |
-| `video-app/secrets.yaml` | Kubernetes secrets template |
-| `video-app/requirements.txt` | Python dependencies |
-| `video-app/templates/` | HTML templates for the web interface |
+| `video-player/app.py` | Flask application |
+| `video-player/Dockerfile` | Container image build definition |
+| `video-player/k8s-deployment-dynamic.yaml` | Kubernetes deployment template |
+| `video-player/secrets.yaml` | Kubernetes secrets template |
+| `video-player/requirements.txt` | Python dependencies |
+| `video-player/templates/` | HTML templates for the web interface |
 
 ## Variables
 
@@ -387,16 +387,16 @@ cp .env.example .env
 # Edit .env with your Azure Storage credentials
 
 # Run locally
-python app_secure.py
+python app.py
 ```
 
 ### Building Container Images
 ```bash
 # Build for local testing
-docker build -f Dockerfile.secure -t video-player-secure .
+docker build -t video-player:secure .
 
 # Build for AKS deployment
-docker build -f Dockerfile.secure --platform linux/amd64 -t video-player-secure .
+docker build --platform linux/amd64 -t video-player:secure .
 ```
 
 ### Kubernetes Debugging

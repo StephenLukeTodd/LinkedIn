@@ -1,7 +1,8 @@
-# Infrastructure & Automation Scripts
+# Project Cringe Machine
 
+Project Cringe Machine is a collection of Instagram reels pulled from a storage account to play randomly on a website for my enjoyment.
 
-This repository is a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. AI was used for the sanitizing of these scripts to make it safe for public consumption. Due to the testing and different scatter brained projects I tend to hop to, these will have different levels of functionality to them. 
+This repository also contains a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. AI was used for the sanitizing of these scripts to make it safe for public consumption. Due to the testing and different scatter brained projects I tend to hop to, these will have different levels of functionality to them.
 
 Key skills demonstrated:
 
