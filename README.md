@@ -1,7 +1,8 @@
-# Infrastructure & Automation Scripts
+# Project Cringe Machine
 
+Project Cringe Machine is a collection of Instagram reels pulled from a storage account to play randomly on a website for my enjoyment.
 
-This repository is a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. AI was used for the sanitizing of these scripts to make it safe for public consumption. Due to the testing and different scatter brained projects I tend to hop to, these will have different levels of functionality to them. 
+This repository also contains a curated collection of personal automation, backup, and infrastructure helper scripts I build and use for home lab and small-scale server administration. AI was used for the sanitizing of these scripts to make it safe for public consumption. Due to the testing and different scatter brained projects I tend to hop to, these will have different levels of functionality to them.
 
 Key skills demonstrated:
 
@@ -35,3 +36,11 @@ Key contents (high level):
  - `ansible/vm_clone_playbook/main_playbook.yml` — the primary playbook for cloning/creating VMs (start here when reviewing the flow).
  - `ansible/vm_clone_playbook/tasks/` — task fragments for disk attachment, network configuration, NIC details, and VM lifecycle management.
  - `ansible/vm_clone_playbook/azure_ansible_helper_suite/` — collection of helper scripts and runbooks used while developing and testing the cloning flow.
+
+## Project Cringe Machine (AKS)
+
+Project Cringe Machine is a collection of Instagram reels pulled from a storage account to play randomly on a website for my enjoyment.
+
+- **Location**: `TF/AKSLab/`
+- **What it is**: Terraform that provisions AKS + supporting Azure resources, builds/pushes a container image to ACR, and deploys a web app that plays videos randomly.
+- **Start here**: `TF/AKSLab/README.md`
